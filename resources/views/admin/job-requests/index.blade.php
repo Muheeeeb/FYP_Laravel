@@ -1,0 +1,87 @@
+@extends('layouts.admin')
+
+@section('content')
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0 text-gray-800">Job Requests</h1>
+        <a href="{{ route('admin.job-requests.create') }}" class="btn btn-primary">Create New Request</a>
+    </div>
+
+    @if(session('success'))
+        <div class="alert alert-success">
+            {{ session('success') }}
+        </div>
+    @endif
+
+    <div class="card shadow mb-4">
+        <div class="card-header py-3 d-flex justify-content-between align-items-center">
+            <h6 class="m-0 font-weight-bold text-primary">Manage Job Requests</h6>
+            <div class="bulk-actions">
+                <form action="{{ route('admin.job-requests.bulk-action') }}" method="POST" class="d-flex">
+                    @csrf
+                    <select name="action" class="form-control mr-2">
+                        <option value="">Bulk Actions</option>
+                        <option value="approve_dean">Approve by Dean</option>
+                        <option value="post_hr">Post to HR</option>
+                        <option value="delete">Delete</option>
+                    </select>
+                    <button type="submit" class="btn btn-secondary">Apply</button>
+                </form>
+            </div>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-bordered" id="jobRequestsTable">
+                    <thead>
+                        <tr>
+                            <th><input type="checkbox" id="selectAll"></th>
+                            <th>Department</th>
+                            <th>Position</th>
+                            <th>HOD</th>
+                            <th>Status</th>
+                            <th>Created At</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach($jobRequests as $request)
+                        <tr>
+                            <td><input type="checkbox" name="job_requests[]" value="{{ $request->id }}" class="request-checkbox"></td>
+                            <td>{{ $request->department->name }}</td>
+                            <td>{{ $request->position }}</td>
+                            <td>{{ $request->hod->name }}</td>
+                            <td>
+                                <span class="badge badge-{{ $request->status == 'approved_by_dean' ? 'success' : ($request->status == 'pending' ? 'warning' : 'info') }}">
+                                    {{ ucfirst(str_replace('_', ' ', $request->status)) }}
+                                </span>
+                            </td>
+                            <td>{{ $request->created_at->format('Y-m-d H:i') }}</td>
+                            <td>
+                                <a href="{{ route('admin.job-requests.show', $request->id) }}" class="btn btn-info btn-sm">View</a>
+                                <a href="{{ route('admin.job-requests.edit', $request->id) }}" class="btn btn-primary btn-sm">Edit</a>
+                                <form action="{{ route('admin.job-requests.destroy', $request->id) }}" method="POST" class="d-inline">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Are you sure?')">Delete</button>
+                                </form>
+                            </td>
+                        </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+                {{ $jobRequests->links() }}
+            </div>
+        </div>
+    </div>
+</div>
+
+@push('scripts')
+<script>
+    document.getElementById('selectAll').addEventListener('change', function() {
+        document.querySelectorAll('.request-checkbox').forEach(checkbox => {
+            checkbox.checked = this.checked;
+        });
+    });
+</script>
+@endpush
+@endsection
