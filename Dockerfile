@@ -10,11 +10,6 @@ RUN apt-get update && apt-get install -y \
     zip \
     unzip
 
-# Install Node.js 20.x and npm
-RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash - \
-    && apt-get install -y nodejs \
-    && npm install -g npm@latest
-
 # Clear cache
 RUN apt-get clean && rm -rf /var/lib/apt/lists/*
 
@@ -27,13 +22,7 @@ COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 # Set working directory
 WORKDIR /var/www/html
 
-# Copy composer files first to leverage Docker cache
-COPY composer.json composer.lock ./
-
-# Install composer dependencies
-RUN composer install --no-scripts --no-autoloader --no-dev
-
-# Copy the rest of the application
+# Copy the application
 COPY . .
 
 # Create .env file with environment variables
@@ -62,8 +51,8 @@ MAIL_ENCRYPTION=tls\n\
 MAIL_FROM_ADDRESS=\${MAIL_FROM_ADDRESS}\n\
 MAIL_FROM_NAME=\${APP_NAME}" > .env
 
-# Generate optimized autoload files
-RUN composer dump-autoload --optimize
+# Install composer dependencies
+RUN composer install --no-dev --optimize-autoloader
 
 # Generate application key
 RUN php artisan key:generate
@@ -71,10 +60,6 @@ RUN php artisan key:generate
 # Set up storage directory
 RUN mkdir -p storage/framework/{sessions,views,cache} \
     && chmod -R 775 storage/framework
-
-# Install NPM dependencies and build assets
-COPY package*.json ./
-RUN npm install && npm run build
 
 # Set proper permissions
 RUN chown -R www-data:www-data /var/www/html \
