@@ -10,8 +10,8 @@ RUN apt-get update && apt-get install -y \
     zip \
     unzip
 
-# Install Node.js 18.x and npm
-RUN curl -fsSL https://deb.nodesource.com/setup_18.x | bash - \
+# Install Node.js 20.x and npm
+RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash - \
     && apt-get install -y nodejs \
     && npm install -g npm@latest
 
@@ -74,7 +74,7 @@ RUN mkdir -p storage/framework/{sessions,views,cache} \
 
 # Install NPM dependencies and build assets
 COPY package*.json ./
-RUN npm ci && npm run build
+RUN npm install && npm run build
 
 # Set proper permissions
 RUN chown -R www-data:www-data /var/www/html \
