@@ -74,7 +74,6 @@
                                 @enderror
                             </div>
 
-                            <!-- Add Department Selection -->
                             <div class="col-md-6 mb-3" id="departmentSection" style="display: none;">
                                 <label for="department_id" class="form-label">Department</label>
                                 <select class="form-select @error('department_id') is-invalid @enderror" 
@@ -136,41 +135,6 @@
                             </div>
                         </div>
                     </form>
-                </div>
-            </div>
-
-            <!-- Additional Actions Card -->
-            <div class="card shadow mt-4">
-                <div class="card-header bg-light">
-                    <h5 class="card-title mb-0">Additional Actions</h5>
-                </div>
-                <div class="card-body">
-                    <div class="d-flex justify-content-between">
-                        <form action="{{ route('admin.users.toggleStatus', $user->id) }}" method="POST" class="d-inline">
-                            @csrf
-                            @method('PATCH')
-                            <button type="submit" class="btn btn-{{ $user->is_active ? 'warning' : 'success' }}">
-                                <i class="fas fa-toggle-{{ $user->is_active ? 'off' : 'on' }}"></i>
-                                {{ $user->is_active ? 'Deactivate' : 'Activate' }} User
-                            </button>
-                        </form>
-
-                        <form action="{{ route('admin.users.resetPassword', $user->id) }}" method="POST" class="d-inline">
-                            @csrf
-                            @method('POST')
-                            <button type="submit" class="btn btn-info" onclick="return confirm('Are you sure you want to reset the password?')">
-                                <i class="fas fa-key"></i> Reset Password
-                            </button>
-                        </form>
-
-                        <form action="{{ route('admin.users.destroy', $user->id) }}" method="POST" class="d-inline">
-                            @csrf
-                            @method('DELETE')
-                            <button type="submit" class="btn btn-danger" onclick="return confirm('Are you sure you want to delete this user?')">
-                                <i class="fas fa-trash"></i> Delete User
-                            </button>
-                        </form>
-                    </div>
                 </div>
             </div>
         </div>

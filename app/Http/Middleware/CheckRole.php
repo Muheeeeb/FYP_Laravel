@@ -7,26 +7,20 @@ use Illuminate\Http\Request;
 
 class CheckRole
 {
-    public function handle($request, Closure $next, ...$roles)
+    public function handle(Request $request, Closure $next, ...$roles)
     {
-        if (!auth()->check()) {
+        if (!$request->user()) {
             return redirect('login');
         }
 
-        $user = auth()->user();
+        $userRole = strtolower($request->user()->role);
         
-        // Debug line to check user role
-        \Log::info('User role check:', [
-            'user_id' => $user->id,
-            'role' => $user->role,
-            'department' => $user->department_id,
-            'is_active' => $user->is_active
-        ]);
-
-        if (!in_array($user->role, $roles)) {
-            abort(403, 'Unauthorized action.');
+        foreach ($roles as $role) {
+            if ($userRole === strtolower($role)) {
+                return $next($request);
+            }
         }
 
-        return $next($request);
+        abort(403, 'Unauthorized action.');
     }
 }

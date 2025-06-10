@@ -68,8 +68,11 @@
                             <label class="form-check-label" for="remember">Remember Me</label>
                         </div>
 
-                        <div class="d-grid">
-                            <button type="submit" class="btn btn-dark">Login</button>
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-dark mb-3">Login</button>
+                            <div class="text-center">
+                                <a href="{{ route('admin.password.request') }}" class="text-decoration-none text-secondary">Forgot Password?</a>
+                            </div>
                         </div>
                     </form>
                 </div>

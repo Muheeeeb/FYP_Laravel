@@ -211,6 +211,26 @@ select.form-control {
     color: #6c757d;
     font-size: 14px;
 }
+
+/* Add just the alert styles */
+.alert {
+    padding: 1rem;
+    margin-bottom: 1.5rem;
+    border-radius: 6px;
+    text-align: center;
+}
+
+.alert-success {
+    background-color: #dcfce7;
+    color: #166534;
+    border: 1px solid #bbf7d0;
+}
+
+.alert-danger {
+    background-color: #fee2e2;
+    color: #991b1b;
+    border: 1px solid #fecaca;
+}
 </style>
 
 <body>
@@ -232,6 +252,23 @@ select.form-control {
                     <h1>Welcome Back</h1>
                     <p>Login to Your HireSmart Account</p>
                 </div>
+
+                <!-- Add this alert section right here -->
+                @if(session('status'))
+                    <div class="alert alert-success">
+                        {{ session('status') }}
+                    </div>
+                @endif
+
+                @if($errors->any())
+                    <div class="alert alert-danger">
+                        <ul style="list-style: none; margin: 0; padding: 0;">
+                            @foreach($errors->all() as $error)
+                                <li>{{ $error }}</li>
+                            @endforeach
+                        </ul>
+                    </div>
+                @endif
 
                 <form action="{{ route('login') }}" method="POST">
                     @csrf
@@ -288,5 +325,23 @@ select.form-control {
             </div>
         </footer>
     </div>
+
+    <!-- Add this script before closing body tag -->
+    <script>
+        // Check if there's an alert message
+        document.addEventListener('DOMContentLoaded', function() {
+            const alertElement = document.querySelector('.alert');
+            if (alertElement) {
+                // Make alert disappear after 3 seconds (3000 milliseconds)
+                setTimeout(function() {
+                    alertElement.style.transition = 'opacity 0.5s ease';
+                    alertElement.style.opacity = '0';
+                    setTimeout(function() {
+                        alertElement.remove();
+                    }, 500);
+                }, 3000);
+            }
+        });
+    </script>
 </body>
 </html>

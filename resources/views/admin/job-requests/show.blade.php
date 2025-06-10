@@ -10,6 +10,35 @@
         </div>
     </div>
 
+    <!-- Add this navigation section -->
+    <div class="card shadow mb-4">
+        <div class="card-body py-2">
+            <div class="d-flex justify-content-between align-items-center">
+                @if($previousRequest)
+                    <a href="{{ route('admin.job-requests.show', $previousRequest->id) }}" class="btn btn-outline-primary btn-sm">
+                        <i class="fas fa-chevron-left"></i> Previous Request
+                    </a>
+                @else
+                    <button class="btn btn-outline-primary btn-sm" disabled>
+                        <i class="fas fa-chevron-left"></i> Previous Request
+                    </button>
+                @endif
+
+                <span class="text-muted">Request #{{ $jobRequest->id }}</span>
+
+                @if($nextRequest)
+                    <a href="{{ route('admin.job-requests.show', $nextRequest->id) }}" class="btn btn-outline-primary btn-sm">
+                        Next Request <i class="fas fa-chevron-right"></i>
+                    </a>
+                @else
+                    <button class="btn btn-outline-primary btn-sm" disabled>
+                        Next Request <i class="fas fa-chevron-right"></i>
+                    </button>
+                @endif
+            </div>
+        </div>
+    </div>
+
     @if(session('success'))
         <div class="alert alert-success">
             {{ session('success') }}

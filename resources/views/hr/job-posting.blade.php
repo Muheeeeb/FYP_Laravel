@@ -1,333 +1,77 @@
-<!DOCTYPE html>
-<html lang="en">
+@extends('layouts.hr')
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dean Dashboard - SZABIST Hiring Portal</title>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
-        rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <meta name="csrf-token" content="{{ csrf_token() }}">
+@section('title', 'Job Postings')
 
-    <!-- Bootstrap CSS -->
-    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" rel="stylesheet">
-
-    <!-- jQuery and Bootstrap JS -->
-    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"></script>
-    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>
-
-    <style>
-    /* Previous CSS styles remain the same */
-    :root {
-        --primary-color: #2563eb;
-        --secondary-color: #1e40af;
-        --background-color: #f1f5f9;
-        --sidebar-color: #1e293b;
-        --text-color: #334155;
-        --white: #ffffff;
-        --card-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    }
-
-    * {
-        margin: 0;
-        padding: 0;
-        box-sizing: border-box;
-        font-family: 'Poppins', sans-serif;
-    }
-
-    body {
-        display: flex;
-        background-color: var(--background-color);
-        color: var(--text-color);
-    }
-
-    .sidebar {
-        width: 250px;
-        height: 100vh;
-        background-color: var(--sidebar-color);
-        padding: 1.5rem;
-        position: fixed;
-        left: 0;
-        top: 0;
-    }
-
-    .sidebar-logo {
-        display: flex;
-        align-items: center;
-        color: var(--white);
-        margin-bottom: 2rem;
-        padding-bottom: 1rem;
-        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-    }
-
-    .sidebar-logo img {
-        width: 40px;
-        margin-right: 0.5rem;
-    }
-
-    .nav-links {
-        list-style: none;
-    }
-
-    .nav-links li {
-        margin-bottom: 0.5rem;
-    }
-
-    .nav-links a {
-        color: #94a3b8;
-        text-decoration: none;
-        display: flex;
-        align-items: center;
-        padding: 0.75rem 1rem;
-        border-radius: 0.5rem;
-        transition: all 0.3s ease;
-    }
-
-    .nav-links a:hover,
-    .nav-links a.active {
-        background-color: rgba(255, 255, 255, 0.1);
-        color: var(--white);
-    }
-
-    .nav-links i {
-        margin-right: 0.75rem;
-        width: 20px;
-    }
-
-    .main-content {
-        margin-left: 250px;
-        padding: 2rem;
-        width: calc(100% - 250px);
-    }
-
-    .header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 2rem;
-    }
-
-    .header h1 {
-        font-size: 1.5rem;
-        color: var(--text-color);
-    }
-
-    .alert {
-        padding: 1rem;
-        margin-bottom: 1rem;
-        border-radius: 0.5rem;
-    }
-
-    .alert-success {
-        background-color: #dcfce7;
-        color: #166534;
-        border: 1px solid #86efac;
-    }
-
-    .alert-danger {
-        background-color: #fee2e2;
-        color: #991b1b;
-        border: 1px solid #fecaca;
-    }
-
-    .card {
-        background: var(--white);
-        border-radius: 0.5rem;
-        box-shadow: var(--card-shadow);
-        margin-bottom: 1.5rem;
-    }
-
-    .card-header {
-        padding: 1rem 1.5rem;
-        border-bottom: 1px solid #e2e8f0;
-        font-weight: 600;
-    }
-
-    .card-body {
-        padding: 1.5rem;
-    }
-
-    .form-group {
-        margin-bottom: 1rem;
-    }
-
-    .form-group label {
-        display: block;
-        margin-bottom: 0.5rem;
-        font-weight: 500;
-    }
-
-    .form-control {
-        width: 100%;
-        padding: 0.5rem;
-        border: 1px solid #e2e8f0;
-        border-radius: 0.375rem;
-        font-size: 0.875rem;
-    }
-
-    .invalid-feedback {
-        color: #dc2626;
-        font-size: 0.875rem;
-        margin-top: 0.25rem;
-    }
-
-    .btn {
-        padding: 0.5rem 1rem;
-        border-radius: 0.375rem;
-        font-weight: 500;
-        cursor: pointer;
-        transition: all 0.3s ease;
-    }
-
-    .btn-primary {
-        background-color: var(--primary-color);
-        color: var(--white);
-        border: none;
-    }
-
-    .btn-primary:hover {
-        background-color: var(--secondary-color);
-    }
-
-    table {
-        width: 100%;
-        border-collapse: collapse;
-
-    }
-
-    th,
-    td {
-        padding: 0.75rem;
-        text-align: left;
-        border-bottom: 1px solid #e2e8f0;
-    }
-
-    th {
-        font-weight: 600;
-        background-color: #f8fafc;
-    }
-
-
-
-    .status-badge {
-        padding: 0.25rem 0.75rem;
-        border-radius: 9999px;
-        font-size: 0.75rem;
-        font-weight: 500;
-    }
-
-    .status-pending {
-        background-color: #fef3c7;
-        color: #92400e;
-    }
-
-    .status-approved {
-        background-color: #dcfce7;
-        color: #166534;
-    }
-
-    .status-rejected {
-        background-color: #fee2e2;
-        color: #991b1b;
-    }
-    </style>
-</head>
-
-<body>
-<aside class="sidebar">
-        <div class="sidebar-logo" style="
-            text-align: center;
-            padding: 15px 0;
-            margin-bottom: 15px;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);">
-            <span style="
-                font-size: 24px; 
-                font-weight: 500; 
-                color: #e2e8f0;
-                font-family: 'Poppins', sans-serif;
-                display: inline-block;">
-                HOD 
-            </span>
-        </div>
-        <ul class="nav-links">
-            <li><a href="{{ route('hr.dashboard') }}" class="active"><i class="fas fa-home"></i>Dashboard</a></li>
-            <li><a href="{{ route('hr.job-posting') }}" class="active"><i class="fas fa-list"></i>Job Postings</a></li>
-            <li><a href="{{ route('hr.analytics') }}" class="active"><i class="fas fa-chart-bar"></i>Analytics</a></li>
-        </ul>
-
-    </aside>
-
-    <main class="main-content">
-        <div class="header">
-            <h1>Welcome, {{ auth()->user()->name }}</h1>
-            <div class="user-info">
-
-                <form action="{{ route('logout') }}" method="POST" class="d-inline">
-                    @csrf
-                    <button type="submit" class="btn"><i class="fas fa-sign-out-alt"></i> Logout</button>
-                </form>
-            </div>
+@section('content')
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0 text-gray-800">Job Postings</h1>
+        <a href="{{ route('hr.manage.jobs') }}" class="btn btn-primary">
+            <i class="fas fa-plus-circle me-2"></i>Manage Job Postings
+        </a>
         </div>
 
-        <div class="container mt-5">
-            <h1>HR Dashboard</h1>
-
-            <!-- Notifications -->
-            @if (session('success'))
-            <div class="alert alert-success">
-                {{ session('success') }}
-            </div>
-            @endif
-
-
+        @if (session('success'))
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+            {{ session('success') }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
+        @endif
 
-        <div class="card">
-            <div class="card-header">Job Postings</div>
+    <!-- Job Postings Card -->
+    <div class="card shadow">
             <div class="card-body">
-                <table class="table">
-                    <thead>
-                        <tr>
-                            <th>Title</th>
-                            <th>Description</th>
-                            <th>Requirements</th>
-                            <th>Posted At</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach ($jobPostings as $posting)
-                        <tr>
-                            <td>{{ $posting->title }}</td>
-                            <td>{{ $posting->description }}</td>
-                            <td>{{ $posting->requirements }}</td>
-                            <td>{{ $posting->posted_at }}</td>
-                        </tr>
-                        @endforeach
-                    </tbody>
-                </table>
+                @if($jobPostings->isEmpty())
+                <div class="text-center py-5">
+                    <i class="fas fa-clipboard-list fa-3x text-gray-300 mb-3"></i>
+                    <p class="text-gray-500 mb-0">No job postings found</p>
+                </div>
+                @else
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle">
+                        <thead>
+                            <tr>
+                                <th>Title</th>
+                                <th>Description</th>
+                                <th>Requirements</th>
+                                <th>Posted At</th>
+                                <th class="text-center">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach ($jobPostings->sortByDesc('created_at') as $posting)
+                            <tr>
+                                <td class="fw-medium">{{ $posting->title }}</td>
+                                <td>{{ Str::limit($posting->description, 100) }}</td>
+                                <td>{{ Str::limit($posting->requirements, 100) }}</td>
+                                <td>{{ $posting->created_at ? $posting->created_at->format('M d, Y') : 'N/A' }}</td>
+                                <td>
+                                    <div class="d-flex justify-content-center gap-2">
+                                        <a href="{{ route('hr.applications.job', $posting->id) }}" 
+                                           class="btn btn-sm btn-info">
+                                            <i class="fas fa-eye"></i> View Applications
+                                        </a>
+                                        <form action="{{ route('hr.delete.job-posting', $posting->id) }}" 
+                                              method="POST" 
+                                              class="d-inline">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit" 
+                                                    class="btn btn-sm btn-danger" 
+                                                    onclick="return confirm('Are you sure you want to delete this job posting?')">
+                                                <i class="fas fa-trash-alt me-1"></i>Delete
+                                            </button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
+                @endif
             </div>
         </div>
-
-        <script>
-           window.onload = function () {
-                if (performance.navigation.type === 2) {
-                    // This is a back button navigation
-                    fetch('/logout', {
-                        method: 'POST',
-                        headers: {
-                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
-                            'Accept': 'application/json',
-                            'Content-Type': 'application/json'
-                        },
-                    }).then(() => {
-                        window.location.href = '/login';
-                    });
-                }
-            };
-    </script>
-
-</body>
-
-</html>
+</div>
+@endsection

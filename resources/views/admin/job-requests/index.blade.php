@@ -16,16 +16,10 @@
     <div class="card shadow mb-4">
         <div class="card-header py-3 d-flex justify-content-between align-items-center">
             <h6 class="m-0 font-weight-bold text-primary">Manage Job Requests</h6>
-            <div class="bulk-actions">
-                <form action="{{ route('admin.job-requests.bulk-action') }}" method="POST" class="d-flex">
-                    @csrf
-                    <select name="action" class="form-control mr-2">
-                        <option value="">Bulk Actions</option>
-                        <option value="approve_dean">Approve by Dean</option>
-                        <option value="post_hr">Post to HR</option>
-                        <option value="delete">Delete</option>
-                    </select>
-                    <button type="submit" class="btn btn-secondary">Apply</button>
+            <div class="search-box">
+                <form action="{{ route('admin.job-requests.index') }}" method="GET" class="d-flex">
+                    <input type="text" name="search" class="form-control" placeholder="Search by department, position..." value="{{ request('search') }}">
+                    <button type="submit" class="btn btn-primary ml-2">Search</button>
                 </form>
             </div>
         </div>
@@ -51,7 +45,7 @@
                             <td>{{ $request->position }}</td>
                             <td>{{ $request->hod->name }}</td>
                             <td>
-                                <span class="badge badge-{{ $request->status == 'approved_by_dean' ? 'success' : ($request->status == 'pending' ? 'warning' : 'info') }}">
+                                <span class="badge badge-{{ $request->status == 'approved_by_dean' ? 'success' : ($request->status == 'pending' ? 'warning' : 'info') }} text-dark">
                                     {{ ucfirst(str_replace('_', ' ', $request->status)) }}
                                 </span>
                             </td>
@@ -69,7 +63,14 @@
                         @endforeach
                     </tbody>
                 </table>
-                {{ $jobRequests->links() }}
+                <div class="d-flex justify-content-between align-items-center mt-4">
+                    <div>
+                        Showing {{ $jobRequests->firstItem() }} to {{ $jobRequests->lastItem() }} of {{ $jobRequests->total() }} results
+                    </div>
+                    <div>
+                        {{ $jobRequests->links('pagination::bootstrap-4') }}
+                    </div>
+                </div>
             </div>
         </div>
     </div>

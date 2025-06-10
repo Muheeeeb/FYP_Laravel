@@ -1,0 +1,75 @@
+[2025-03-12 15:58:24,978] INFO in app: Sending request to Gemini API for 1Dr2RzSYUTSrrhCXylW7sxizZTg8vxW4xHyqQsQZ.pdf
+[2025-03-12 15:58:24,978] ERROR in app: Error processing resume 1Dr2RzSYUTSrrhCXylW7sxizZTg8vxW4xHyqQsQZ.pdf: GenerativeModel.generate_content() got an unexpected keyword argument 'timeout'
+[2025-03-12 15:58:24,978] INFO in app: Processing resume: QYos5WNa4zDNmwo4U1EkQD648u3d35jMC5W6uKzn.pdf
+[2025-03-12 15:58:24,984] INFO in app: Processing PDF: QYos5WNa4zDNmwo4U1EkQD648u3d35jMC5W6uKzn.pdf
+[2025-03-12 15:58:24,986] INFO in app: PDF saved to: C:\Users\HP\AppData\Local\Temp\tmp7f_9yfue\QYos5WNa4zDNmwo4U1EkQD648u3d35jMC5W6uKzn.pdf
+[2025-03-12 15:58:25,178] INFO in app: Successfully extracted text from QYos5WNa4zDNmwo4U1EkQD648u3d35jMC5W6uKzn.pdf
+[2025-03-12 15:58:25,178] INFO in app: Cleaned up temporary directory: C:\Users\HP\AppData\Local\Temp\tmp7f_9yfue
+[2025-03-12 15:58:25,178] INFO in app: Sending request to Gemini API for QYos5WNa4zDNmwo4U1EkQD648u3d35jMC5W6uKzn.pdf
+[2025-03-12 15:58:25,178] ERROR in app: Error processing resume QYos5WNa4zDNmwo4U1EkQD648u3d35jMC5W6uKzn.pdf: GenerativeModel.generate_content() got an unexpected keyword argument 'timeout'
+[2025-03-12 15:58:25,178] INFO in app: Completed processing 3 resumes
+[2025-03-12 16:00:07,736] INFO in app: Received resume evaluation request
+[2025-03-12 16:00:07,736] INFO in app: Processing resume: c93GM6SDk5TGLRrCByy55aJOQGCSb6vFPdQwjMA2.pdf
+[2025-03-12 16:00:07,736] INFO in app: Processing PDF: c93GM6SDk5TGLRrCByy55aJOQGCSb6vFPdQwjMA2.pdf
+[2025-03-12 16:00:07,736] INFO in app: PDF saved to: C:\Users\HP\AppData\Local\Temp\tmpke23r93k\c93GM6SDk5TGLRrCByy55aJOQGCSb6vFPdQwjMA2.pdf
+[2025-03-12 16:00:08,071] INFO in app: Successfully extracted text from c93GM6SDk5TGLRrCByy55aJOQGCSb6vFPdQwjMA2.pdf
+[2025-03-12 16:00:08,072] INFO in app: Cleaned up temporary directory: C:\Users\HP\AppData\Local\Temp\tmpke23r93k
+[2025-03-12 16:00:08,073] INFO in app: Sending request to Gemini API for c93GM6SDk5TGLRrCByy55aJOQGCSb6vFPdQwjMA2.pdf
+[2025-03-12 16:00:08,570] ERROR in app: Error processing resume c93GM6SDk5TGLRrCByy55aJOQGCSb6vFPdQwjMA2.pdf: 404 models/gemini-pro is not found for API version v1beta, or is not supported for generateContent. Call ListModels to see the list of available models and their supported methods.
+[2025-03-12 16:00:08,570] INFO in app: Processing resume: 1Dr2RzSYUTSrrhCXylW7sxizZTg8vxW4xHyqQsQZ.pdf
+[2025-03-12 16:00:08,586] INFO in app: Processing PDF: 1Dr2RzSYUTSrrhCXylW7sxizZTg8vxW4xHyqQsQZ.pdf
+[2025-03-12 16:00:08,588] INFO in app: PDF saved to: C:\Users\HP\AppData\Local\Temp\tmpyb87h2ou\1Dr2RzSYUTSrrhCXylW7sxizZTg8vxW4xHyqQsQZ.pdf
+[2025-03-12 16:00:08,788] INFO in app: Successfully extracted text from 1Dr2RzSYUTSrrhCXylW7sxizZTg8vxW4xHyqQsQZ.pdf
+[2025-03-12 16:00:08,788] INFO in app: Cleaned up temporary directory: C:\Users\HP\AppData\Local\Temp\tmpyb87h2ou
+[2025-03-12 16:00:08,788] INFO in app: Sending request to Gemini API for 1Dr2RzSYUTSrrhCXylW7sxizZTg8vxW4xHyqQsQZ.pdf
+[2025-03-12 16:00:09,165] ERROR in app: Error processing resume 1Dr2RzSYUTSrrhCXylW7sxizZTg8vxW4xHyqQsQZ.pdf: 404 models/gemini-pro is not found for API version v1beta, or is not supported for generateContent. Call ListModels to see the list of available models and their supported methods.
+[2025-03-12 16:00:09,166] INFO in app: Processing resume: QYos5WNa4zDNmwo4U1EkQD648u3d35jMC5W6uKzn.pdf
+[2025-03-12 16:00:09,167] INFO in app: Processing PDF: QYos5WNa4zDNmwo4U1EkQD648u3d35jMC5W6uKzn.pdf
+[2025-03-12 16:00:09,169] INFO in app: PDF saved to: C:\Users\HP\AppData\Local\Temp\tmp567pxn7c\QYos5WNa4zDNmwo4U1EkQD648u3d35jMC5W6uKzn.pdf
+[2025-03-12 16:00:09,410] INFO in app: Successfully extracted text from QYos5WNa4zDNmwo4U1EkQD648u3d35jMC5W6uKzn.pdf
+[2025-03-12 16:00:09,413] INFO in app: Cleaned up temporary directory: C:\Users\HP\AppData\Local\Temp\tmp567pxn7c
+[2025-03-12 16:00:09,414] INFO in app: Sending request to Gemini API for QYos5WNa4zDNmwo4U1EkQD648u3d35jMC5W6uKzn.pdf
+[2025-03-12 16:00:09,645] ERROR in app: Error processing resume QYos5WNa4zDNmwo4U1EkQD648u3d35jMC5W6uKzn.pdf: 404 models/gemini-pro is not found for API version v1beta, or is not supported for generateContent. Call ListModels to see the list of available models and their supported methods.
+[2025-03-12 16:00:09,645] INFO in app: Completed processing 3 resumes
+[2025-03-12 16:00:11,770] INFO in app: Received resume evaluation request
+[2025-03-12 16:00:11,775] INFO in app: Processing resume: c93GM6SDk5TGLRrCByy55aJOQGCSb6vFPdQwjMA2.pdf
+[2025-03-12 16:00:11,775] INFO in app: Processing PDF: c93GM6SDk5TGLRrCByy55aJOQGCSb6vFPdQwjMA2.pdf
+[2025-03-12 16:00:11,775] INFO in app: PDF saved to: C:\Users\HP\AppData\Local\Temp\tmpm7vr69ln\c93GM6SDk5TGLRrCByy55aJOQGCSb6vFPdQwjMA2.pdf
+[2025-03-12 16:00:12,002] INFO in app: Successfully extracted text from c93GM6SDk5TGLRrCByy55aJOQGCSb6vFPdQwjMA2.pdf
+[2025-03-12 16:00:12,002] INFO in app: Cleaned up temporary directory: C:\Users\HP\AppData\Local\Temp\tmpm7vr69ln
+[2025-03-12 16:00:12,002] INFO in app: Sending request to Gemini API for c93GM6SDk5TGLRrCByy55aJOQGCSb6vFPdQwjMA2.pdf
+[2025-03-12 16:00:12,220] ERROR in app: Error processing resume c93GM6SDk5TGLRrCByy55aJOQGCSb6vFPdQwjMA2.pdf: 404 models/gemini-pro is not found for API version v1beta, or is not supported for generateContent. Call ListModels to see the list of available models and their supported methods.
+[2025-03-12 16:00:12,220] INFO in app: Processing resume: 1Dr2RzSYUTSrrhCXylW7sxizZTg8vxW4xHyqQsQZ.pdf
+[2025-03-12 16:00:12,220] INFO in app: Processing PDF: 1Dr2RzSYUTSrrhCXylW7sxizZTg8vxW4xHyqQsQZ.pdf
+[2025-03-12 16:00:12,220] INFO in app: PDF saved to: C:\Users\HP\AppData\Local\Temp\tmpbvdg0iwy\1Dr2RzSYUTSrrhCXylW7sxizZTg8vxW4xHyqQsQZ.pdf
+[2025-03-12 16:00:12,437] INFO in app: Successfully extracted text from 1Dr2RzSYUTSrrhCXylW7sxizZTg8vxW4xHyqQsQZ.pdf
+[2025-03-12 16:00:12,439] INFO in app: Cleaned up temporary directory: C:\Users\HP\AppData\Local\Temp\tmpbvdg0iwy
+[2025-03-12 16:00:12,440] INFO in app: Sending request to Gemini API for 1Dr2RzSYUTSrrhCXylW7sxizZTg8vxW4xHyqQsQZ.pdf
+[2025-03-12 16:00:12,802] ERROR in app: Error processing resume 1Dr2RzSYUTSrrhCXylW7sxizZTg8vxW4xHyqQsQZ.pdf: 404 models/gemini-pro is not found for API version v1beta, or is not supported for generateContent. Call ListModels to see the list of available models and their supported methods.
+[2025-03-12 16:00:12,802] INFO in app: Processing resume: QYos5WNa4zDNmwo4U1EkQD648u3d35jMC5W6uKzn.pdf
+[2025-03-12 16:00:12,802] INFO in app: Processing PDF: QYos5WNa4zDNmwo4U1EkQD648u3d35jMC5W6uKzn.pdf
+[2025-03-12 16:00:12,802] INFO in app: PDF saved to: C:\Users\HP\AppData\Local\Temp\tmpluan8y30\QYos5WNa4zDNmwo4U1EkQD648u3d35jMC5W6uKzn.pdf
+[2025-03-12 16:00:13,020] INFO in app: Successfully extracted text from QYos5WNa4zDNmwo4U1EkQD648u3d35jMC5W6uKzn.pdf
+[2025-03-12 16:00:13,020] INFO in app: Cleaned up temporary directory: C:\Users\HP\AppData\Local\Temp\tmpluan8y30
+[2025-03-12 16:00:13,020] INFO in app: Sending request to Gemini API for QYos5WNa4zDNmwo4U1EkQD648u3d35jMC5W6uKzn.pdf
+[2025-03-12 16:00:13,245] ERROR in app: Error processing resume QYos5WNa4zDNmwo4U1EkQD648u3d35jMC5W6uKzn.pdf: 404 models/gemini-pro is not found for API version v1beta, or is not supported for generateContent. Call ListModels to see the list of available models and their supported methods.
+[2025-03-12 16:00:13,246] INFO in app: Completed processing 3 resumes
+[2025-03-12 16:01:58,714] INFO in app: Received resume evaluation request
+[2025-03-12 16:01:58,714] INFO in app: Processing resume: c93GM6SDk5TGLRrCByy55aJOQGCSb6vFPdQwjMA2.pdf
+[2025-03-12 16:01:58,728] INFO in app: Processing PDF: c93GM6SDk5TGLRrCByy55aJOQGCSb6vFPdQwjMA2.pdf
+[2025-03-12 16:01:58,728] INFO in app: PDF saved to: C:\Users\HP\AppData\Local\Temp\tmpikd5ib16\c93GM6SDk5TGLRrCByy55aJOQGCSb6vFPdQwjMA2.pdf
+[2025-03-12 16:01:58,955] INFO in app: Successfully extracted text from c93GM6SDk5TGLRrCByy55aJOQGCSb6vFPdQwjMA2.pdf
+[2025-03-12 16:01:58,956] INFO in app: Cleaned up temporary directory: C:\Users\HP\AppData\Local\Temp\tmpikd5ib16
+[2025-03-12 16:02:00,093] ERROR in app: Error processing resume c93GM6SDk5TGLRrCByy55aJOQGCSb6vFPdQwjMA2.pdf: 404 models/gemini-1.0-pro is not found for API version v1beta, or is not supported for generateContent. Call ListModels to see the list of available models and their supported methods.
+[2025-03-12 16:02:00,093] INFO in app: Processing resume: 1Dr2RzSYUTSrrhCXylW7sxizZTg8vxW4xHyqQsQZ.pdf
+[2025-03-12 16:02:00,093] INFO in app: Processing PDF: 1Dr2RzSYUTSrrhCXylW7sxizZTg8vxW4xHyqQsQZ.pdf
+[2025-03-12 16:02:00,093] INFO in app: PDF saved to: C:\Users\HP\AppData\Local\Temp\tmprqgnu8oj\1Dr2RzSYUTSrrhCXylW7sxizZTg8vxW4xHyqQsQZ.pdf
+[2025-03-12 16:02:00,305] INFO in app: Successfully extracted text from 1Dr2RzSYUTSrrhCXylW7sxizZTg8vxW4xHyqQsQZ.pdf
+[2025-03-12 16:02:00,307] INFO in app: Cleaned up temporary directory: C:\Users\HP\AppData\Local\Temp\tmprqgnu8oj
+[2025-03-12 16:02:00,572] ERROR in app: Error processing resume 1Dr2RzSYUTSrrhCXylW7sxizZTg8vxW4xHyqQsQZ.pdf: 404 models/gemini-1.0-pro is not found for API version v1beta, or is not supported for generateContent. Call ListModels to see the list of available models and their supported methods.
+[2025-03-12 16:02:00,573] INFO in app: Processing resume: QYos5WNa4zDNmwo4U1EkQD648u3d35jMC5W6uKzn.pdf
+[2025-03-12 16:02:00,574] INFO in app: Processing PDF: QYos5WNa4zDNmwo4U1EkQD648u3d35jMC5W6uKzn.pdf
+[2025-03-12 16:02:00,576] INFO in app: PDF saved to: C:\Users\HP\AppData\Local\Temp\tmp3_davui8\QYos5WNa4zDNmwo4U1EkQD648u3d35jMC5W6uKzn.pdf
+[2025-03-12 16:02:00,764] INFO in app: Successfully extracted text from QYos5WNa4zDNmwo4U1EkQD648u3d35jMC5W6uKzn.pdf
+[2025-03-12 16:02:00,765] INFO in app: Cleaned up temporary directory: C:\Users\HP\AppData\Local\Temp\tmp3_davui8
+[2025-03-12 16:02:01,326] INFO in app: Completed processing 3 resumes

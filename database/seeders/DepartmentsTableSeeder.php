@@ -14,12 +14,18 @@ class DepartmentsTableSeeder extends Seeder
      */
     public function run(): void
     {
-        DB::table('departments')->insert([
+        $departments = [
             ['name' => 'Computer Science'],
             ['name' => 'Electrical Engineering'],
             ['name' => 'Business Administration'],
-            ['name' => 'Robotics'],
-         
-        ]);
+            ['name' => 'Robotics']
+        ];
+
+        foreach ($departments as $department) {
+            DB::table('departments')->updateOrInsert(
+                ['name' => $department['name']],
+                $department
+            );
+        }
     }
 }

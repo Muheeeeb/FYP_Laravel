@@ -204,6 +204,24 @@
         .pagination a:hover {
             background-color: #f8fafc;
         }
+
+        /* Back button style */
+        .back-btn {
+            padding: 0.5rem 1rem;
+            border-radius: 0.375rem;
+            background-color: var(--primary-color);
+            color: var(--white);
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .back-btn:hover {
+            background-color: var(--secondary-color);
+        }
     </style>
 </head>
 <body>
@@ -225,10 +243,9 @@
         <div class="header">
             <h1>Pending Job Requests</h1>
             <div class="user-info">
-                <form action="{{ route('logout') }}" method="POST" class="d-inline">
-                    @csrf
-                    <button type="submit" class="btn btn-primary"><i class="fas fa-sign-out-alt"></i> Logout</button>
-                </form>
+                <a href="{{ route('hod.analytics') }}" class="back-btn">
+                    <i class="fas fa-arrow-left"></i> Back to Analytics
+                </a>
             </div>
         </div>
 

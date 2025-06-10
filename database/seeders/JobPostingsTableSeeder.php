@@ -11,19 +11,21 @@ class JobPostingsTableSeeder extends Seeder
     {
         DB::table('job_postings')->insert([
             [
-                'request_id' => 1, // Link to first job request
+                'job_request_id' => 1, // Link to first job request
                 'title' => 'Assistant Professor - Computer Science',
                 'description' => 'Teach and guide students in the Computer Science department.',
                 'requirements' => 'PhD in Computer Science or related field, teaching experience preferred.',
+                'department' => 'Computer Science',
                 'posted_at' => now(),
                 'created_at' => now(),
                 'updated_at' => now(),
             ],
             [
-                'request_id' => 2, // Link to second job request
+                'job_request_id' => 2, // Link to second job request
                 'title' => 'Research Assistant in AI',
                 'description' => 'Support AI research projects in the CS department.',
-                'requirements' => 'Master’s degree in CS, experience in machine learning research.',
+                'requirements' => "Master's degree in CS, experience in machine learning research.",
+                'department' => 'Computer Science',
                 'posted_at' => now(),
                 'created_at' => now(),
                 'updated_at' => now(),

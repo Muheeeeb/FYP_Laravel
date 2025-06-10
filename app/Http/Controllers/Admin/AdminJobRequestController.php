@@ -11,12 +11,24 @@ use Illuminate\Support\Facades\Auth;
 
 class AdminJobRequestController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $jobRequests = JobRequest::with(['department', 'hod', 'jobPostings'])
-            ->latest()
-            ->paginate(10);
-            
+        $query = JobRequest::with(['department', 'hod', 'jobPostings']);
+        
+        if ($request->has('search')) {
+            $search = $request->get('search');
+            $query->where(function($q) use ($search) {
+                $q->whereHas('department', function($q) use ($search) {
+                    $q->where('name', 'like', "%{$search}%");
+                })
+                ->orWhere('position', 'like', "%{$search}%")
+                ->orWhereHas('hod', function($q) use ($search) {
+                    $q->where('name', 'like', "%{$search}%");
+                });
+            });
+        }
+        
+        $jobRequests = $query->latest()->paginate(10);
         return view('admin.job-requests.index', compact('jobRequests'));
     }
 

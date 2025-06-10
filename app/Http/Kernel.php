@@ -70,5 +70,7 @@ class Kernel extends HttpKernel
         'verify.otp' => \App\Http\Middleware\VerifyOtp::class,
         'not.admin' => \App\Http\Middleware\NotAdmin::class,
         'check.department' => \App\Http\Middleware\CheckDepartment::class,
+        'role' => \App\Http\Middleware\CheckRole::class,
+        'verify.2fa' => \App\Http\Middleware\Verify2FA::class,
     ];
 }

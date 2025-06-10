@@ -61,6 +61,10 @@
                                        id="password" 
                                        name="password" 
                                        required>
+                                <small class="text-muted">
+                                    Password must contain:
+                                   
+                                </small>
                                 @error('password')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
@@ -73,6 +77,9 @@
                                        id="password_confirmation" 
                                        name="password_confirmation" 
                                        required>
+                                <div id="password-match-feedback" class="invalid-feedback" style="display: none;">
+                                    Passwords do not match
+                                </div>
                             </div>
                         </div>
 
@@ -158,6 +165,35 @@
     .invalid-feedback {
         font-size: 80%;
     }
+    .text-muted ul {
+        font-size: 0.875rem;
+        padding-left: 1.2rem;
+        margin-top: 0.5rem;
+    }
+    .password-requirements {
+        margin-top: 0.5rem;
+    }
+    .text-danger {
+        color: #dc3545;
+    }
+    .password-requirements-feedback {
+        font-size: 0.875rem;
+        margin-top: 0.5rem;
+    }
+    button[type="submit"]:disabled {
+        cursor: not-allowed;
+        opacity: 0.65;
+    }
+    #password-requirements-feedback ul {
+        list-style-type: none;
+        padding-left: 0;
+        margin-top: 0.5rem;
+        font-size: 0.875rem;
+    }
+    #password-requirements-feedback li {
+        color: #dc3545;
+        margin-bottom: 0.25rem;
+    }
 </style>
 @endpush
 
@@ -180,6 +216,100 @@
 
         roleSelect.addEventListener('change', toggleDepartmentSection);
         toggleDepartmentSection(); // Run on page load
+
+        const passwordInput = document.getElementById('password');
+        const confirmPasswordInput = document.getElementById('password_confirmation');
+        const form = document.querySelector('form');
+        const submitButton = document.querySelector('button[type="submit"]');
+
+        // Password validation requirements
+        const passwordRequirements = {
+            minLength: 8,
+            patterns: {
+                uppercase: /[A-Z]/,
+                lowercase: /[a-z]/,
+                number: /[0-9]/,
+                special: /[!@#$%^&*]/
+            }
+        };
+
+        function validatePassword(password) {
+            const checks = {
+                length: password.length >= passwordRequirements.minLength,
+                uppercase: passwordRequirements.patterns.uppercase.test(password),
+                lowercase: passwordRequirements.patterns.lowercase.test(password),
+                number: passwordRequirements.patterns.number.test(password),
+                special: passwordRequirements.patterns.special.test(password)
+            };
+
+            // Create feedback message
+            let feedbackHtml = '<ul class="mb-0 text-danger">';
+            if (!checks.length) feedbackHtml += '<li>Must be at least 8 characters</li>';
+            if (!checks.uppercase) feedbackHtml += '<li>Must contain an uppercase letter</li>';
+            if (!checks.lowercase) feedbackHtml += '<li>Must contain a lowercase letter</li>';
+            if (!checks.number) feedbackHtml += '<li>Must contain a number</li>';
+            if (!checks.special) feedbackHtml += '<li>Must contain a special character (!@#$%^&*)</li>';
+            feedbackHtml += '</ul>';
+
+            // Update feedback display
+            const feedbackElement = document.getElementById('password-requirements-feedback');
+            feedbackElement.innerHTML = feedbackHtml;
+
+            return Object.values(checks).every(check => check === true);
+        }
+
+        // Add password requirements feedback div after password input
+        const requirementsFeedback = document.createElement('div');
+        requirementsFeedback.id = 'password-requirements-feedback';
+        requirementsFeedback.className = 'mt-2';
+        passwordInput.parentNode.appendChild(requirementsFeedback);
+
+        function updateSubmitButton() {
+            const password = passwordInput.value;
+            const confirmPassword = confirmPasswordInput.value;
+            const isPasswordValid = validatePassword(password);
+            const doPasswordsMatch = password === confirmPassword;
+
+            // Enable submit button only if all conditions are met
+            submitButton.disabled = !(isPasswordValid && doPasswordsMatch);
+
+            // Visual feedback
+            if (!isPasswordValid) {
+                passwordInput.classList.add('is-invalid');
+            } else {
+                passwordInput.classList.remove('is-invalid');
+            }
+
+            if (confirmPassword && !doPasswordsMatch) {
+                confirmPasswordInput.classList.add('is-invalid');
+                document.getElementById('password-match-feedback').style.display = 'block';
+            } else {
+                confirmPasswordInput.classList.remove('is-invalid');
+                document.getElementById('password-match-feedback').style.display = 'none';
+            }
+        }
+
+        // Add event listeners
+        passwordInput.addEventListener('input', updateSubmitButton);
+        confirmPasswordInput.addEventListener('input', updateSubmitButton);
+
+        // Prevent form submission if validation fails
+        form.addEventListener('submit', function(e) {
+            const password = passwordInput.value;
+            if (!validatePassword(password)) {
+                e.preventDefault();
+                alert('Please ensure your password meets all requirements.');
+                return false;
+            }
+            if (password !== confirmPasswordInput.value) {
+                e.preventDefault();
+                alert('Passwords do not match.');
+                return false;
+            }
+        });
+
+        // Initial validation check
+        updateSubmitButton();
     });
 </script>
 @endpush

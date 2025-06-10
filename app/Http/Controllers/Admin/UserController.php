@@ -42,39 +42,40 @@ class UserController extends Controller
 
     public function store(Request $request)
     {
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'required|string|email|max:255|unique:users',
+            'password' => [
+                'required',
+                'string',
+                'min:8',
+                'confirmed',
+                'regex:/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*])[A-Za-z\d!@#$%^&*]{8,}$/',
+            ],
+            'role' => 'required|in:admin,hod,dean,hr',
+            'department_id' => 'required_if:role,hod|nullable|exists:departments,id',
+        ], [
+            'password.regex' => 'Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character (!@#$%^&*)',
+        ]);
+
         Log::info('Store User Request:', $request->all());
 
         try {
             DB::beginTransaction();
 
-            $validationRules = [
-                'name' => 'required|string|max:255',
-                'email' => 'required|string|email|max:255|unique:users',
-                'password' => 'required|string|min:8|confirmed',
-                'role' => 'required|string|in:admin,hod,dean,hr',
-            ];
-
-            if ($request->role === 'hod') {
-                $validationRules['department_id'] = 'required|exists:departments,id';
-            } else {
-                $validationRules['department_id'] = 'nullable|exists:departments,id';
-            }
-
-            $validated = $request->validate($validationRules);
-
             $user = User::create([
-                'name' => $validated['name'],
-                'email' => $validated['email'],
-                'password' => Hash::make($validated['password']),
-                'role' => $validated['role'],
-                'is_admin' => $validated['role'] === 'admin',
+                'name' => $request->name,
+                'email' => $request->email,
+                'password' => Hash::make($request->password),
+                'role' => $request->role,
+                'is_admin' => $request->role === 'admin',
                 'is_active' => true,
-                'department_id' => $request->role === 'hod' ? $validated['department_id'] : null,
+                'department_id' => $request->role === 'hod' ? $request->department_id : null,
             ]);
 
-            if ($validated['role'] === 'hod') {
+            if ($request->role === 'hod') {
                 Department::where('hod_id', $user->id)->update(['hod_id' => null]);
-                Department::where('id', $validated['department_id'])->update(['hod_id' => $user->id]);
+                Department::where('id', $request->department_id)->update(['hod_id' => $user->id]);
             }
 
             DB::commit();
@@ -123,21 +124,35 @@ class UserController extends Controller
         try {
             DB::beginTransaction();
 
-            $validated = $request->validate([
+            // Base validation rules
+            $validationRules = [
                 'name' => 'required|string|max:255',
                 'email' => 'required|string|email|max:255|unique:users,email,' . $user->id,
                 'role' => 'required|string|in:admin,hod,dean,hr',
-                'department_id' => 'required|exists:departments,id',
-            ]);
+            ];
 
+            // Add department_id validation only for HOD role
+            if ($request->role === 'hod') {
+                $validationRules['department_id'] = 'required|exists:departments,id';
+            }
+
+            $validated = $request->validate($validationRules);
+
+            // Base user data
             $userData = [
                 'name' => $validated['name'],
                 'email' => $validated['email'],
                 'role' => $validated['role'],
                 'is_admin' => $validated['role'] === 'admin',
-                'department_id' => $validated['department_id'],
+                'department_id' => null, // Default to null
             ];
 
+            // Set department_id only for HOD
+            if ($validated['role'] === 'hod') {
+                $userData['department_id'] = $request->department_id;
+            }
+
+            // Handle password update if provided
             if ($request->filled('password')) {
                 $request->validate([
                     'password' => 'required|string|min:8|confirmed'
@@ -145,13 +160,18 @@ class UserController extends Controller
                 $userData['password'] = Hash::make($request->password);
             }
 
-            if ($user->role !== $validated['role'] || $user->department_id !== $validated['department_id']) {
+            // Handle HOD department relationships
+            if ($user->role !== $validated['role'] || 
+                ($validated['role'] === 'hod' && $user->department_id !== $request->department_id)) {
+                
+                // Remove old HOD association
                 if ($user->role === 'hod') {
                     Department::where('hod_id', $user->id)->update(['hod_id' => null]);
                 }
 
+                // Set new HOD association
                 if ($validated['role'] === 'hod') {
-                    Department::where('id', $validated['department_id'])->update(['hod_id' => $user->id]);
+                    Department::where('id', $request->department_id)->update(['hod_id' => $user->id]);
                 }
             }
 

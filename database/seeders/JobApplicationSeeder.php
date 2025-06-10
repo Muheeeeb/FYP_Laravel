@@ -3,27 +3,29 @@
 namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
-use App\Models\JobApplication;
+use Illuminate\Support\Facades\DB;
 use App\Models\JobPosting;
-use App\Models\User;
+use App\Models\JobApplication;
 
 class JobApplicationSeeder extends Seeder
 {
     public function run()
     {
-        // Get a job posting from your department
+        // Get a job posting
         $jobPosting = JobPosting::first();
-        
-        // Get a user with role 'user'
-        $user = User::where('role', 'user')->first();
 
-        if ($jobPosting && $user) {
-            JobApplication::create([
-                'job_posting_id' => $jobPosting->id,
-                'user_id' => $user->id,
-                'status' => 'pending',
+        if ($jobPosting) {
+            DB::table('job_applications')->insert([
+                'job_id' => $jobPosting->id,
+                'name' => 'Test Applicant',
+                'email' => 'test@example.com',
+                'phone' => '1234567890',
                 'resume_path' => 'resumes/test-resume.pdf',
-                'cover_letter_path' => 'cover-letters/test-cover.pdf'
+                'cv_path' => null,
+                'status' => JobApplication::STATUS_APPLIED,
+                'is_ranked' => false,
+                'created_at' => now(),
+                'updated_at' => now()
             ]);
         }
     }

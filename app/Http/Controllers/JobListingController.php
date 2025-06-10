@@ -14,33 +14,40 @@ class JobListingController extends Controller
     public function index()
     {
         try {
-            $user = auth()->user();
-            
-            // If user is HOD, only show jobs from their department
-            if ($user && $user->role === 'hod') {
-                $jobs = JobPosting::with(['jobRequest.department'])  // Updated to include jobRequest
-                    ->where('department_id', $user->department_id)
-                    ->latest()
-                    ->paginate(10);
-            } else {
-                // For other users/admin, show all jobs
-                $jobs = JobPosting::with(['jobRequest.department'])  // Updated to include jobRequest
-                    ->latest()
-                    ->paginate(10);
-            }
+            // Get all jobs with status 'posted_by_hr'
+            $jobs = JobPosting::with('department')
+                ->where('status', 'posted_by_hr')  // Changed to match your actual status
+                ->orderBy('posted_at', 'desc')
+                ->orderBy('created_at', 'desc')
+                ->paginate(10);
 
-            return view('jobs.listings', compact('jobs'));
+            \Log::info('Filtered jobs:', [
+                'count' => $jobs->count(),
+                'total' => $jobs->total(),
+                'jobs' => $jobs->items()
+            ]);
+
+            // Let's pass some debug info to the view
+            return view('listing', [
+                'jobs' => $jobs,
+                'debug' => [
+                    'total_jobs' => JobPosting::count(),
+                    'statuses' => JobPosting::distinct()->pluck('status')->toArray(),
+                    'filtered_count' => $jobs->count()
+                ]
+            ]);
 
         } catch (\Exception $e) {
-            Log::error('Error in job listings: ' . $e->getMessage());
-            return back()->with('error', 'Error loading job listings.');
+            \Log::error('Error in job listings: ' . $e->getMessage());
+            \Log::error('Stack trace: ' . $e->getTraceAsString());
+            return back()->with('error', 'Error loading job listings: ' . $e->getMessage());
         }
     }
 
     public function show($id)
     {
         try {
-            $job = JobPosting::with(['jobRequest.department'])  // Updated to include jobRequest
+            $job = JobPosting::with('department')  // Changed from jobRequest.department
                 ->findOrFail($id);
             
             // Check if HOD is trying to access job from different department
@@ -51,7 +58,7 @@ class JobListingController extends Controller
                     ->with('error', 'You can only view jobs from your department.');
             }
 
-            return view('jobs.show', compact('job'));
+            return view('show', compact('job'));  // Changed from jobs.show
 
         } catch (\Exception $e) {
             Log::error('Error showing job: ' . $e->getMessage());
@@ -62,16 +69,8 @@ class JobListingController extends Controller
     // New method for handling job applications
     public function apply($id)
     {
-        try {
-            $job = JobPosting::with(['department'])
-                ->findOrFail($id);
-
-            return view('jobs.apply', compact('job'));
-
-        } catch (\Exception $e) {
-            Log::error('Error accessing job application: ' . $e->getMessage());
-            return back()->with('error', 'Error accessing job application.');
-        }
+        $job = JobPosting::findOrFail($id);
+        return view('jobs.apply', compact('job'));
     }
 
     public function submitApplication(Request $request, $id)
@@ -116,5 +115,29 @@ class JobListingController extends Controller
                 ->withInput()
                 ->with('error', 'There was an error submitting your application. Please try again.');
         }
+    }
+
+    public function submit(Request $request, JobPosting $job)
+    {
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'required|email|max:255',
+            'resume' => 'required|file|mimes:pdf,doc,docx|max:2048',
+        ]);
+
+        // Store the resume file
+        $resumePath = $request->file('resume')->store('resumes', 'public');
+
+        // Create job application
+        $application = JobApplication::create([
+            'job_id' => $job->id,
+            'name' => $request->name,
+            'email' => $request->email,
+            'resume_path' => $resumePath,
+            'status' => 'pending'
+        ]);
+
+        return redirect()->route('jobs.index')
+            ->with('success', 'Your application has been submitted successfully!');
     }
 }

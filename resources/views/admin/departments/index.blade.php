@@ -46,7 +46,7 @@
                                         <td>{{ $department->name }}</td>
                                         <td>{{ $department->users_count }}</td>
                                         <td>{{ $department->job_requests_count }}</td>
-                                        <td>{{ $department->created_at->format('Y-m-d') }}</td>
+                                        <td>{{ $department->created_at ? $department->created_at->format('Y-m-d') : 'N/A' }}</td>
                                         <td>
                                             <a href="{{ route('admin.departments.edit', $department) }}" 
                                                class="btn btn-sm btn-info">

@@ -14,9 +14,63 @@
     <link rel="icon" type="image/png" sizes="56x56" href="{{ asset('images/fav-icon/icon.png') }}">
     <link href="{{ asset('css/responsive_template.css') }}" rel="stylesheet">
     <link href="{{ asset('css/style_template.css') }}" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 
     <style>
+        /* Loader styles */
+        #loader-wrapper {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 999999;
+            background: #fff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            opacity: 1;
+            transition: opacity 0.3s ease-out;
+        }
+
+        #loader ul {
+            list-style: none;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            gap: 6px;
+        }
+
+        #loader ul li {
+            width: 3px;
+            height: 20px;
+            background-color: #4361ee;
+            animation: loading 0.8s ease-in-out infinite;
+            border-radius: 2px;
+        }
+
+        #loader ul li:nth-child(1) { animation-delay: -0.5s; }
+        #loader ul li:nth-child(2) { animation-delay: -0.4s; }
+        #loader ul li:nth-child(3) { animation-delay: -0.3s; }
+        #loader ul li:nth-child(4) { animation-delay: -0.2s; }
+        #loader ul li:nth-child(5) { animation-delay: -0.1s; }
+        #loader ul li:nth-child(6) { animation-delay: 0s; }
+
+        @keyframes loading {
+            0%, 40%, 100% {
+                transform: scaleY(0.4);
+            }
+            20% {
+                transform: scaleY(1);
+            }
+        }
+
+        .main-page-wrapper {
+            opacity: 0;
+            transition: opacity 0.3s ease-in;
+        }
+
         .no-jobs-container {
             text-align: center;
             padding: 80px 20px;
@@ -195,7 +249,50 @@
         </div>
 
         <!-- Footer -->
-        @include('partials.footer')
+        <footer style="background-color: #ffffff; padding: 60px 0 30px;">
+            <div class="container">
+                <div class="row">
+                    <!-- Address Section -->
+                    <div class="col-md-4 mb-4 mb-md-0">
+                        <img src="{{ asset('images/logo/szabist-logo.jpeg') }}" alt="SZABIST" style="height: 50px; margin-bottom: 25px;">
+                        <p style="color: #666; margin-bottom: 10px; font-size: 15px;">Street 9, Plot 67, Sector H-8/4</p>
+                        <p style="color: #666; margin-bottom: 10px; font-size: 15px;">Islamabad, Pakistan</p>
+                        <p style="color: #666; margin-bottom: 10px; font-size: 15px;">careers@szabist-isb.edu.pk</p>
+                        <p style="color: #666; margin-bottom: 10px; font-size: 15px;">+92-51-4863363-65</p>
+                    </div>
+
+                    <!-- Quick Links Section -->
+                    <div class="col-md-4 mb-4 mb-md-0">
+                        <h3 style="font-size: 24px; color: #333; margin-bottom: 25px;">Quick Links</h3>
+                        <ul style="list-style: none; padding: 0;">
+                            <li style="margin-bottom: 15px;">
+                                <a href="#" style="color: #666; text-decoration: none; font-size: 15px;">How it Works</a>
+                            </li>
+                            <li style="margin-bottom: 15px;">
+                                <a href="#" style="color: #666; text-decoration: none; font-size: 15px;">About Us</a>
+                            </li>
+                            <li style="margin-bottom: 15px;">
+                                <a href="#" style="color: #666; text-decoration: none; font-size: 15px;">Contact</a>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <!-- Newsletter Section -->
+                    <div class="col-md-4">
+                        <h3 style="font-size: 24px; color: #333; margin-bottom: 25px;">Subscribe to Newsletter</h3>
+                        <div>
+                            <input type="email" placeholder="Enter your email" 
+                                   style="width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 4px; font-size: 15px; margin-bottom: 10px;">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Copyright -->
+                <div style="border-top: 1px solid #eee; margin-top: 40px; padding-top: 20px; text-align: center;">
+                    <p style="color: #666; font-size: 14px; margin: 0;">© {{ date('Y') }} HireSmart. All rights reserved.</p>
+                </div>
+            </div>
+        </footer>
 
         <!-- Scroll Top Button -->
         <button class="scroll-top tran3s">
@@ -204,18 +301,54 @@
     </div>
 
     <!-- Scripts -->
+    <script>
+        // Show loader immediately
+        document.getElementById('loader-wrapper').style.display = 'flex';
+        document.querySelector('.main-page-wrapper').style.display = 'none';
+
+        // When DOM is ready
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('DOM Content Loaded');
+            const mainContent = document.querySelector('.main-page-wrapper');
+            if (mainContent) {
+                mainContent.style.display = 'block';
+                mainContent.style.opacity = '0';
+            }
+        });
+
+        // When everything is loaded
+        window.addEventListener('load', function() {
+            console.log('Window Loaded');
+            const loader = document.getElementById('loader-wrapper');
+            const mainContent = document.querySelector('.main-page-wrapper');
+            
+            if (mainContent) {
+                // Show the content
+                mainContent.style.opacity = '1';
+                
+                // Hide the loader
+                if (loader) {
+                    setTimeout(function() {
+                        loader.style.opacity = '0';
+                        setTimeout(function() {
+                            loader.style.display = 'none';
+                        }, 300);
+                    }, 500);
+                }
+            }
+        });
+    </script>
+
+    <!-- Move jQuery to the top -->
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    
+    <!-- Other Scripts -->
     <script src="{{ asset('js/jquery.appear.js') }}"></script>
     <script src="{{ asset('js/jquery.countTo.js') }}"></script>
     <script src="{{ asset('js/theme.js') }}"></script>
-    <script src="{{ asset('js/jquery.2.2.3.min.js') }}"></script>
-    <script src="{{ asset('js/jquery.fancybox.min.js') }}"></script>
     <script src="{{ asset('js/owl.carousel.min.js') }}"></script>
     <script src="{{ asset('js/wow.min.js') }}"></script>
     <script src="{{ asset('js/menu.js') }}"></script>
-    <script src="{{ asset('js/jquery.mobile.customized.min.js') }}"></script>
-    <script src="{{ asset('js/jquery.easing.1.3.js') }}"></script>
-    <script src="{{ asset('js/camera.min.js') }}"></script>
-    <script src="{{ asset('js/bootstrap-select.js') }}"></script>
     <script src="{{ asset('js/bootstrap.min.js') }}"></script>
 </body>
 </html>

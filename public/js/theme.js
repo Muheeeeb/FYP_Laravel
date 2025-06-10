@@ -1,4 +1,3 @@
-
 //  Theme Custom jquery file, 
 
     // Created on   : 24/09/2017.
@@ -12,17 +11,6 @@
 
 
 "use strict";
-
-// Prealoder
- function prealoader () {
-   if ($('#loader').length) {
-     $('#loader').fadeOut(); // will first fade out the loading animation
-     $('#loader-wrapper').delay(350).fadeOut('slow'); // will fade out the white DIV that covers the website.
-     $('body').delay(350).css({'overflow':'visible'});
-  };
- }
-
-
 
 // placeholder remove
 function removePlaceholder () {
@@ -415,6 +403,5 @@ jQuery(window).on('scroll', function () {
 jQuery(window).on('load', function () {
    (function ($) {
     masonaryBlog ();
-    prealoader ()
   })(jQuery);
- });
+});

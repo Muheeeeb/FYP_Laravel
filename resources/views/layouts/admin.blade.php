@@ -9,6 +9,31 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        // Set up CSRF token for all AJAX requests
+        $.ajaxSetup({
+            headers: {
+                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+            }
+        });
+
+        // Function to refresh CSRF token
+        function refreshToken() {
+            $.get('/csrf-token', function(data) {
+                $('meta[name="csrf-token"]').attr('content', data.token);
+                $.ajaxSetup({
+                    headers: {
+                        'X-CSRF-TOKEN': data.token
+                    }
+                });
+            });
+        }
+
+        // Refresh token every 30 minutes
+        setInterval(refreshToken, 30 * 60 * 1000);
+    </script>
     <!-- Custom CSS -->
     <style>
         :root {

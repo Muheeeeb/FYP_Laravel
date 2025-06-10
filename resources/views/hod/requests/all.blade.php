@@ -220,6 +220,168 @@
             gap: 0.25rem;
             white-space: nowrap;
         }
+
+        /* Back button style */
+        .back-btn {
+            padding: 0.5rem 1rem;
+            border-radius: 0.375rem;
+            background-color: var(--primary-color);
+            color: var(--white);
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .back-btn:hover {
+            background-color: var(--secondary-color);
+        }
+
+        .search-container {
+            background: var(--white);
+            padding: 1.5rem;
+            border-radius: 0.5rem;
+            box-shadow: var(--card-shadow);
+        }
+
+        .search-form input:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.1);
+        }
+
+        .btn-secondary {
+            background-color: #6b7280;
+            color: var(--white);
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 0.375rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-secondary:hover {
+            background-color: #4b5563;
+        }
+
+        .pagination-container {
+            margin-top: 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem;
+            background-color: var(--white);
+            border-radius: 0.5rem;
+            box-shadow: var(--card-shadow);
+        }
+
+        .pagination-info {
+            color: var(--text-color);
+        }
+
+        .pagination-links {
+            display: flex;
+            align-items: center;
+        }
+
+        .pagination {
+            display: flex;
+            list-style: none;
+            margin: 0;
+            padding: 0;
+            gap: 0.5rem;
+        }
+
+        .page-item {
+            margin: 0;
+        }
+
+        .page-link {
+            padding: 0.5rem 1rem;
+            border-radius: 0.375rem;
+            border: 1px solid #e5e7eb;
+            color: var(--text-color);
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+
+        .page-item.active .page-link {
+            background-color: var(--primary-color);
+            color: var(--white);
+            border-color: var(--primary-color);
+        }
+
+        .page-link:hover:not(.disabled) {
+            background-color: var(--background-color);
+        }
+
+        .page-item.disabled .page-link {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .mt-4 {
+            margin-top: 1.5rem;
+        }
+
+        .d-flex {
+            display: flex;
+        }
+
+        .justify-content-between {
+            justify-content: space-between;
+        }
+
+        .align-items-center {
+            align-items: center;
+        }
+
+        /* Bootstrap 4 pagination styles */
+        .pagination {
+            display: flex;
+            padding-left: 0;
+            list-style: none;
+            border-radius: 0.25rem;
+            margin: 0;
+        }
+
+        .page-link {
+            position: relative;
+            display: block;
+            padding: 0.5rem 0.75rem;
+            margin-left: -1px;
+            line-height: 1.25;
+            color: var(--primary-color);
+            background-color: #fff;
+            border: 1px solid #dee2e6;
+        }
+
+        .page-item:first-child .page-link {
+            margin-left: 0;
+            border-top-left-radius: 0.25rem;
+            border-bottom-left-radius: 0.25rem;
+        }
+
+        .page-item:last-child .page-link {
+            border-top-right-radius: 0.25rem;
+            border-bottom-right-radius: 0.25rem;
+        }
+
+        .page-item.active .page-link {
+            z-index: 3;
+            color: #fff;
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
+        }
+
+        .page-item.disabled .page-link {
+            color: #6c757d;
+            pointer-events: none;
+            cursor: auto;
+            background-color: #fff;
+            border-color: #dee2e6;
+        }
     </style>
 </head>
 <body>
@@ -241,11 +403,37 @@
         <div class="header">
             <h1>All Job Requests</h1>
             <div class="user-info">
-                <form action="{{ route('logout') }}" method="POST" class="d-inline">
-                    @csrf
-                    <button type="submit" class="btn"><i class="fas fa-sign-out-alt"></i> Logout</button>
-                </form>
+                <a href="{{ route('hod.analytics') }}" class="back-btn">
+                    <i class="fas fa-arrow-left"></i> Back to Analytics
+                </a>
             </div>
+        </div>
+
+        <!-- Search Form -->
+        <div class="search-container">
+            <form action="{{ route('hod.requests.all') }}" method="GET" class="search-form">
+                <div style="display: flex; gap: 1rem; align-items: center;">
+                    <div style="flex: 1;">
+                        <input 
+                            type="text" 
+                            name="search" 
+                            placeholder="Search by position or department..."
+                            value="{{ request('search') }}"
+                            style="width: 100%; padding: 0.5rem 1rem; border: 1px solid #e5e7eb; border-radius: 0.375rem; outline: none;"
+                        >
+                    </div>
+                    <div style="display: flex; gap: 0.5rem;">
+                        <button type="submit" class="btn btn-primary" style="white-space: nowrap;">
+                            <i class="fas fa-search"></i> Search
+                        </button>
+                        @if(request('search'))
+                            <a href="{{ route('hod.requests.all') }}" class="btn btn-secondary" style="background-color: #6b7280; color: white; text-decoration: none;">
+                                Clear
+                            </a>
+                        @endif
+                    </div>
+                </div>
+            </form>
         </div>
 
         <table class="requests-table">
@@ -287,8 +475,14 @@
             </tbody>
         </table>
 
-        <div class="pagination">
-            {{ $requests->links() }}
+        <!-- Updated pagination section to match admin style -->
+        <div class="d-flex justify-content-between align-items-center mt-4">
+            <div>
+                Showing {{ $requests->firstItem() ?? 0 }} to {{ $requests->lastItem() ?? 0 }} of {{ $requests->total() }} results
+            </div>
+            <div>
+                {{ $requests->links('pagination::bootstrap-4') }}
+            </div>
         </div>
     </main>
 </body>

@@ -5,117 +5,252 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="theme-color" content="#2c2c2c">
+    <meta name="msapplication-navbutton-color" content="#2c2c2c">
+    <meta name="apple-mobile-web-app-status-bar-style" content="#2c2c2c">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>Apply for Position - SZABIST</title>
+
+    <title>Apply for Position - HireSmart</title>
+
     <link rel="icon" type="image/png" sizes="56x56" href="{{ asset('images/fav-icon/icon.png') }}">
-    <link href="{{ asset('css/style_template.css') }}" rel="stylesheet">
     <link href="{{ asset('css/responsive_template.css') }}" rel="stylesheet">
+    <link href="{{ asset('css/style_template.css') }}" rel="stylesheet">
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <style>
+        @keyframes slideDown {
+            from { transform: translate(-50%, -100%); }
+            to { transform: translate(-50%, 0); }
+        }
+
+        /* Add these new styles */
+        .main-page-wrapper {
+            display: none;
+        }
+
+        #loader-wrapper {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 9999;
+            background: #ffffff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+    </style>
 </head>
+
 <body>
     <div class="main-page-wrapper">
+        <!-- Loader -->
+        <div id="loader-wrapper">
+            <div id="loader">
+                <ul>
+                    <li></li><li></li><li></li>
+                    <li></li><li></li><li></li>
+                </ul>
+            </div>
+        </div>
+
         <!-- Header -->
-        <header style="position: fixed; width: 100%; top: 0; left: 0; z-index: 1000; padding: 15px 0; background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(10px);">
+        <header style="position: fixed; width: 100%; top: 0; left: 0; z-index: 1000; padding: 15px 0; background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(10px); transition: all 0.3s ease;">
             <div style="max-width: 1200px; margin: 0 auto; padding: 0 20px;">
                 <nav style="display: flex; justify-content: space-between; align-items: center;">
                     <div style="flex-shrink: 0;">
-                        <a href="{{ url('/') }}">
-                            <img src="{{ asset('images/logo/szabist-logo.jpeg') }}" alt="Logo" style="height: 40px;">
+                        <a href="{{ route('home') }}">
+                            <img src="{{ asset('images/logo/szabist-logo.jpeg') }}" alt="Logo" style="height: 40px; display: block;">
                         </a>
                     </div>
+                    <ul style="display: flex; align-items: center; gap: 30px; margin: 0; padding: 0; list-style: none;">
+                        <li>
+                            <a href="{{ route('jobs.index') }}" 
+                               style="background: #006dd7; color: white; padding: 10px 25px; border-radius: 5px; text-decoration: none; font-weight: 500; border: none;">
+                                Back to Listings
+                            </a>
+                        </li>
+                    </ul>
                 </nav>
             </div>
         </header>
 
-        <!-- Main Content -->
-        <div class="container" style="margin-top: 120px; padding: 40px 20px; max-width: 1000px; margin-left: auto; margin-right: auto;">
+        @if(session('success'))
+            <div style="position: fixed; top: 80px; left: 50%; transform: translateX(-50%); 
+                        background-color: #d4edda; color: #155724; 
+                        padding: 15px 30px; border-radius: 5px; z-index: 1000;
+                        box-shadow: 0 2px 5px rgba(0,0,0,0.2); text-align: center;
+                        animation: slideDown 0.5s ease-out;">
+                {{ session('success') }}
+            </div>
+        @endif
+
+        <!-- Job Details Section -->
+        <div class="container" style="margin-top: 80px; max-width: 800px; padding: 0 20px;">
             <div class="row justify-content-center">
-                <div class="col-md-12">
-                    <div class="card" style="background: white; border-radius: 15px; padding: 40px; box-shadow: 0 2px 10px rgba(0,0,0,0.05);">
-                        <!-- Job Details Section -->
-                        <div style="text-align: center; margin-bottom: 40px; padding-bottom: 30px; border-bottom: 1px solid #eee;">
-                            <h2 style="font-size: 36px; color: #333; margin-bottom: 20px;">Junior Lecturer Position</h2>
-                            <div style="display: flex; justify-content: center; gap: 40px; margin-bottom: 20px;">
-                                <div>
-                                    <p style="color: #666; font-size: 18px;"><strong>Department:</strong> Robotics and AI</p>
-                                </div>
-                                <div>
-                                    <p style="color: #666; font-size: 18px;"><strong>Position:</strong> Junior Lecturer</p>
-                                </div>
-                            </div>
-                            <p style="color: #666; font-size: 18px;">Lab attendant required</p>
+                <div class="col-md-8" style="width: 100%;">
+                    <div style="background: white; border-radius: 10px; padding: 30px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); margin: 0 auto;">
+                        <h1 style="text-align: center; color: #006dd7; margin-bottom: 30px; font-size: 32px;">{{ $job->position }}</h1>
+                        
+                        <div style="text-align: center; margin-bottom: 30px;">
+                            <p style="color: #666; margin-bottom: 8px; font-size: 18px;">
+                                <strong>Department:</strong> {{ $job->department->name ?? 'Department Not Specified' }}
+                            </p>
+                            <p style="color: #666; margin-bottom: 8px; font-size: 18px;">
+                                <strong>Position:</strong> {{ $job->position }}
+                            </p>
+                            @if($job->lab_attendant_required)
+                                <p style="color: #666; margin-bottom: 8px; font-size: 18px;">
+                                    Lab attendant required
+                                </p>
+                            @endif
                         </div>
 
                         <!-- Application Form -->
-                        <div style="background: #f8f9fa; padding: 30px; border-radius: 10px;">
-                            <h3 style="color: #333; font-size: 24px; margin-bottom: 30px; text-align: center;">Submit Your Application</h3>
+                        <form method="POST" action="{{ route('jobs.submit', $job->id) }}" enctype="multipart/form-data" 
+                              style="max-width: 500px; margin: 0 auto;">
+                            @csrf
                             
-                            <form action="{{ route('jobs.submit-application', $job->id) }}" method="POST" enctype="multipart/form-data">
-                                @csrf
-                                
-                                <!-- Personal Information -->
-                                <div style="margin-bottom: 30px;">
-                                    <h4 style="color: #333; font-size: 20px; margin-bottom: 20px;">Personal Information</h4>
-                                    <div class="row">
-                                        <div class="col-md-6" style="margin-bottom: 20px;">
-                                            <label style="display: block; margin-bottom: 8px; color: #333;">Full Name *</label>
-                                            <input type="text" name="full_name" required 
-                                                   style="width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 5px;">
-                                        </div>
-                                        <div class="col-md-6" style="margin-bottom: 20px;">
-                                            <label style="display: block; margin-bottom: 8px; color: #333;">Email Address *</label>
-                                            <input type="email" name="email" required 
-                                                   style="width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 5px;">
-                                        </div>
-                                    </div>
+                            @if(session('error'))
+                                <div style="background-color: #f8d7da; color: #721c24; 
+                                            padding: 15px; margin-bottom: 20px; border-radius: 5px; 
+                                            text-align: center;">
+                                    {{ session('error') }}
                                 </div>
+                            @endif
 
-                                <!-- Cover Letter -->
-                                <div style="margin-bottom: 30px;">
-                                    <h4 style="color: #333; font-size: 20px; margin-bottom: 20px;">Cover Letter</h4>
-                                    <textarea name="cover_letter" rows="6" required
-                                              style="width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 5px;"
-                                              placeholder="Tell us why you're interested in this position..."></textarea>
-                                </div>
+                            <div style="margin-bottom: 20px;">
+                                <label style="display: block; margin-bottom: 8px; color: #333; font-size: 16px; font-weight: 500;">
+                                    Full Name *
+                                </label>
+                                <input type="text" name="name" required 
+                                       style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; font-size: 16px;">
+                            </div>
 
-                                <!-- Resume Upload -->
-                                <div style="margin-bottom: 30px;">
-                                    <h4 style="color: #333; font-size: 20px; margin-bottom: 20px;">Resume/CV</h4>
-                                    <input type="file" name="resume" required accept=".pdf,.doc,.docx"
-                                           style="width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 5px;">
-                                    <small style="display: block; margin-top: 8px; color: #666;">Accepted formats: PDF, DOC, DOCX</small>
-                                </div>
+                            <div style="margin-bottom: 20px;">
+                                <label style="display: block; margin-bottom: 8px; color: #333; font-size: 16px; font-weight: 500;">
+                                    Email *
+                                </label>
+                                <input type="email" name="email" required 
+                                       style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; font-size: 16px;">
+                            </div>
 
-                                <!-- Submit Buttons -->
-                                <div style="display: flex; 
-                                            flex-direction: column; 
-                                            align-items: center; 
-                                            margin-top: 40px; 
-                                            gap: 15px;">
-                                    <button type="submit" 
-                                            style="background: #006dd7; 
-                                                   color: white; 
-                                                   padding: 15px 40px; 
-                                                   border: none; 
-                                                   border-radius: 5px; 
-                                                   font-size: 16px; 
-                                                   cursor: pointer;
-                                                   width: 200px;">Submit</button>
-                                
-                                </div>
-                            </form>
-                        </div>
+                            <div style="margin-bottom: 20px;">
+                                <label style="display: block; margin-bottom: 8px; color: #333; font-size: 16px; font-weight: 500;">
+                                    Phone Number *
+                                </label>
+                                <input type="tel" name="phone" required 
+                                       pattern="[0-9]{11}"
+                                       placeholder="03XXXXXXXXX"
+                                       style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; font-size: 16px;">
+                            </div>
+
+                            <div style="margin-bottom: 25px;">
+                                <label style="display: block; margin-bottom: 8px; color: #333; font-size: 16px; font-weight: 500;">
+                                    Resume/CV (PDF, DOC, DOCX) *
+                                </label>
+                                <input type="file" name="resume" required 
+                                       accept=".pdf,.doc,.docx"
+                                       style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; font-size: 16px;">
+                            </div>
+
+                            <div style="text-align: center; margin-top: 30px;">
+                                <button type="submit" 
+                                        style="padding: 12px 40px; background: #006dd7; color: white; border: none; border-radius: 5px; font-weight: 500; font-size: 16px; cursor: pointer; width: 100%; transition: background-color 0.3s ease;">
+                                    Submit Application
+                                </button>
+                            </div>
+                        </form>
                     </div>
                 </div>
             </div>
         </div>
 
         <!-- Footer -->
-        @include('partials.footer')
+        <footer style="background-color: #ffffff; padding: 50px 0 0; color: #333; margin-top: 50px; border-top: 1px solid #eee;">
+            <div class="container">
+                <div class="row" style="display: flex; justify-content: space-between; margin-bottom: 30px;">
+                    <!-- Company Info -->
+                    <div class="col-md-4">
+                        <img src="{{ asset('images/logo/szabist-logo.jpeg') }}" alt="Logo" style="height: 50px; margin-bottom: 15px;">
+                        <p style="color: #333; font-size: 14px; line-height: 1.6; margin-bottom: 10px;">
+                            Street 9, Plot 67, Sector H-8/4, Islamabad, Pakistan
+                        </p>
+                        <p style="color: #006dd7; margin-bottom: 5px;">careers@szabist-isb.edu.pk</p>
+                        <p style="color: #006dd7;">+92-51-4863363-65</p>
+                    </div>
+
+                    <!-- Quick Links -->
+                    <div class="col-md-4">
+                        <h4 style="color: #333; margin-bottom: 20px;">Quick Links</h4>
+                        <ul style="list-style: none; padding: 0;">
+                            <li style="margin-bottom: 10px;">
+                                <a href="{{ route('home') }}" style="color: #333; text-decoration: none;">Home</a>
+                            </li>
+                            <li style="margin-bottom: 10px;">
+                                <a href="#" style="color: #333; text-decoration: none;">About Us</a>
+                            </li>
+                            <li style="margin-bottom: 10px;">
+                                <a href="#" style="color: #333; text-decoration: none;">Contact</a>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <!-- Subscribe Section -->
+                    <div class="col-md-4">
+                        <h4 style="color: #333; margin-bottom: 20px;">Subscribe Us</h4>
+                        <div style="display: flex;">
+                            <input type="email" placeholder="Enter your email" 
+                                   style="padding: 10px; border: 1px solid #ddd; border-radius: 5px 0 0 5px; width: 70%;">
+                            <button type="submit" 
+                                    style="padding: 10px 20px; background: #006dd7; border: none; border-radius: 0 5px 5px 0; color: white; cursor: pointer;">
+                                Subscribe
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Bottom Footer -->
+                <div style="border-top: 1px solid #eee; padding: 20px 0; text-align: center;">
+                    <p style="margin: 0; color: #333; font-size: 14px;">
+                        © {{ date('Y') }} HireSmart. All rights reserved
+                    </p>
+                </div>
+            </div>
+        </footer>
     </div>
 
-    <!-- Scripts -->
+    <!-- Include all scripts -->
+    <script src="{{ asset('js/jquery.appear.js') }}"></script>
+    <script src="{{ asset('js/jquery.countTo.js') }}"></script>
     <script src="{{ asset('js/theme.js') }}"></script>
+    <script src="{{ asset('js/jquery.2.2.3.min.js') }}"></script>
+    <script src="{{ asset('js/jquery.fancybox.min.js') }}"></script>
+    <script src="{{ asset('js/owl.carousel.min.js') }}"></script>
+    <script src="{{ asset('js/wow.min.js') }}"></script>
+    <script src="{{ asset('js/menu.js') }}"></script>
+    <script src="{{ asset('js/jquery.mobile.customized.min.js') }}"></script>
+    <script src="{{ asset('js/jquery.easing.1.3.js') }}"></script>
+    <script src="{{ asset('js/camera.min.js') }}"></script>
+    <script src="{{ asset('js/bootstrap-select.js') }}"></script>
     <script src="{{ asset('js/bootstrap.min.js') }}"></script>
+
+    <!-- Scripts -->
+    <script>
+        $(document).ready(function() {
+            // Hide loader and show content when page is ready
+            $('#loader-wrapper').fadeOut();
+            $('.main-page-wrapper').fadeIn();
+        });
+
+        // Remove success message after 5 seconds
+        setTimeout(function() {
+            const successMessage = document.querySelector('[style*="background-color: #d4edda"]');
+            if (successMessage) {
+                successMessage.style.opacity = '0';
+                successMessage.style.transition = 'opacity 0.5s ease-out';
+                setTimeout(() => successMessage.remove(), 500);
+            }
+        }, 5000);
+    </script>
 </body>
 </html>

@@ -2,30 +2,92 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="theme-color" content="#2c2c2c">
-    <meta name="msapplication-navbutton-color" content="#2c2c2c">
-    <meta name="apple-mobile-web-app-status-bar-style" content="#2c2c2c">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-
     <title>HireSmart &amp; AI Based Hiring Platform</title>
 
-    <link rel="icon" type="image/png" sizes="56x56" href="{{ asset('images/fav-icon/icon.png') }}">
-    <link href="{{ asset('css/responsive_template.css') }}" rel="stylesheet">
-    <link href="{{ asset('css/style_template.css') }}" rel="stylesheet">
-    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
-</head>
-
+    <!-- Preload critical assets -->
+    <link rel="preload" href="{{ asset('images/logo/szabist-logo.jpeg') }}" as="image">
+    <link rel="preload" href="{{ asset('images/back.png') }}" as="image">
+    
+    <!-- Critical CSS -->
 <style>
-@keyframes fadeIn {
-    from { opacity: 0; transform: translateY(20px); }
-    to { opacity: 1; transform: translateY(0); }
+        /* Inline critical CSS */
+        .loader {
+    position: fixed;
+            top: 0;
+            left: 0;
+    width: 100%;
+    height: 100%;
+            background: #fff;
+            z-index: 9999;
+    display: flex;
+            justify-content: center;
+    align-items: center;
+}
+        .loader.fade-out {
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s, visibility 0.3s;
+}
+
+/* Newsletter Subscription Styles */
+.subscribe-form {
+    margin-top: 20px;
+}
+
+.input-group {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 15px;
+}
+
+.form-control {
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    width: 100%;
+}
+
+.subscribe-button {
+    padding: 10px 20px;
+    background: #006dd7;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.subscribe-button:hover {
+    background: #0056aa;
+}
+
+.alert {
+    padding: 10px;
+    border-radius: 4px;
+    margin-top: 10px;
+    font-size: 14px;
+}
+
+.alert-success {
+    background-color: rgba(220, 252, 231, 0.9);
+    color: #166534;
+}
+
+.alert-danger {
+    background-color: rgba(254, 226, 226, 0.9);
+    color: #991b1b;
 }
 </style>
 
+    <!-- Defer non-critical CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" media="print" onload="this.media='all'">
+    <link rel="stylesheet" href="{{ asset('css/custom.css') }}" media="print" onload="this.media='all'">
+</head>
+
 <body>
-    <div class="main-page-wrapper">
         <!-- Loader -->
         <div id="loader-wrapper">
             <div id="loader">
@@ -40,257 +102,653 @@
             </div>
         </div>
 
-        <!-- Header - with clean white background -->
-        <header style="position: fixed; width: 100%; top: 0; left: 0; z-index: 1000; padding: 15px 0; background: white; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
-            <div style="max-width: 1200px; margin: 0 auto; padding: 0 20px;">
-                <nav style="display: flex; justify-content: space-between; align-items: center;">
-                    <div style="flex-shrink: 0;">
-                        <a href="{{ url('/') }}">
-                            <img src="{{ asset('images/logo/szabist-logo.jpeg') }}" alt="Logo" style="height: 40px; display: block;">
-                        </a>
-                    </div>
-                    <ul style="display: flex; align-items: center; gap: 30px; margin: 0; padding: 0; list-style: none;">
-                        <li>
-                            <a href="{{ url('/') }}" style="color: #333; text-decoration: none; font-weight: 500; font-size: 16px; transition: color 0.3s; padding: 5px 10px;">Home</a>
+    <div class="main-page-wrapper">
+        <!-- Header -->
+        <header class="fixed-top shadow-sm bg-white">
+            <nav class="navbar navbar-expand-lg py-2 container">
+                <a class="navbar-brand" href="{{ url('/') }}">
+                    <img src="{{ asset('images/logo/szabist-logo.jpeg') }}" alt="Logo" height="50" width="auto">
+                </a>
+                <div class="ms-auto">
+                    <ul class="navbar-nav flex-row gap-3">
+                        <li class="nav-item">
+                            <a class="nav-link px-3 fw-medium text-dark" href="{{ url('/') }}">Home</a>
                         </li>
-                        <li>
-                            <a href="{{ route('login') }}" style="background: #006dd7; color: white; padding: 10px 25px; border-radius: 5px; text-decoration: none; transition: all 0.3s; font-weight: 500; border: none;">Login</a>
+                        <li class="nav-item">
+                            <a class="nav-link px-3 fw-medium text-dark" href="{{ route('track.form') }}">Track Application</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="btn btn-primary px-4 fw-medium" href="{{ route('login') }}">Login</a>
                         </li>
                     </ul>
+                </div>
                 </nav>
-            </div>
         </header>
 
         <!-- Hero Section -->
-        <div style="position: relative; height: 100vh; overflow: hidden; margin-top: 70px;">
-            <!-- Background image -->
-            <div style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-                background-image: url('{{ asset('images/back.png') }}');
-                background-position: center;
-                background-repeat: no-repeat;
-                background-size: cover;">
-                <!-- Semi-transparent overlay -->
-                <div style="position: absolute;
-                    top: 0;
-                    left: 0;
-                    width: 100%;
-                    height: 100%;
-                    background-color: rgba(0, 0, 0, 0.5);">
+        <section class="hero-section d-flex align-items-center" style="min-height: 100vh; padding-top: 76px; background: url('{{ asset('images/back.png') }}') center/cover no-repeat fixed;">
+            <div class="container">
+                <div class="row justify-content-center text-center">
+                    <div class="col-lg-8 animate__animated animate__fadeInUp">
+                        <h1 class="display-3 fw-bold text-white mb-3">Transform Your Hiring Process</h1>
+                        <h2 class="h3 fw-normal text-white mb-4 opacity-90">Intelligent Recruitment Solutions</h2>
+                        <a href="{{ route('jobs.index') }}" class="btn btn-primary btn-lg">
+                            Explore Opportunities
+                            <i class="fas fa-arrow-right ms-2"></i>
+                        </a>
+                    </div>
                 </div>
             </div>
-            
-            <!-- Content on top of overlay -->
-            <div style="position: relative; z-index: 2; 
-                max-width: 1200px; 
-                margin: 0 auto; 
-                padding: 0 20px; 
-                text-align: center; 
-                padding-top: 30vh;">
-                
-                <h1 style="font-family: 'Arial', sans-serif;
-                    font-size: 48px; 
-                    font-weight: 600; 
-                    margin: 0 0 20px 0; 
-                    color: white;
-                    text-shadow: 2px 2px 4px rgba(0,0,0,0.3);">
-                    Transform Hiring & Solutions
-                </h1>
-                
-                <h2 style="font-family: 'Arial', sans-serif;
-                    font-size: 28px;
-                    font-weight: 400;
-                    margin: 0 0 30px 0;
-                    color: white;
-                    text-shadow: 2px 2px 4px rgba(0,0,0,0.3);">
-                    AI-Powered Onboarding
-                </h2>
-                
-                <a href="{{ route('jobs.listings') }}" 
-                    style="display: inline-block; 
-                    padding: 12px 30px; 
-                    background: #006dd7; 
-                    color: white; 
-                    text-decoration: none; 
-                    border-radius: 6px; 
-                    font-weight: 500; 
-                    font-size: 16px;
-                    transition: all 0.3s;">
-                    Explore Now
-                </a>
-            </div>
-        </div>
+        </section>
 
         <!-- What We Do Section -->
-        <div class="what-we-do">
-            <div class="container">
-                <h3>We specialize in transforming recruitment with AI-powered solutions, streamlining the hiring process from job posting to onboarding.</h3>
-                <h6>Our platform ensures accurate candidate matching, automated workflows &amp; data-driven decision-making to help organizations hire efficiently and intelligently.</h6>
+        <section class="py-5 bg-white">
+            <div class="container py-5">
+                <div class="row justify-content-center text-center mb-5">
+                    <div class="col-lg-8 animate__animated animate__fadeInUp">
+                        <h2 class="section-title mb-4">Revolutionizing Recruitment with AI</h2>
+                        <p class="lead text-muted">Our intelligent platform combines AI-powered matching with streamlined workflows for next-generation hiring.</p>
+                    </div>
+                </div>
 
-                <div class="row">
-                    <div class="col-md-4 col-sm-6 col-xs-12 wow fadeInLeft">
-                        <div class="single-block">
-                            <div class="icon color-one"><i class="flaticon-note"></i></div>
-                            <h6>Tailored Role-Based Interfaces</h6>
-                            <h5><a href="#" class="tran3s">Customized tools for each department &amp; Member</a></h5>
+                <div class="row g-4">
+                    <div class="col-md-4 animate__animated animate__fadeInUp" style="animation-delay: 0.1s">
+                        <div class="service-card h-100 p-4 text-center">
+                            <div class="service-icon mb-4">
+                                <i class="fas fa-robot fa-2x"></i>
+                            </div>
+                            <h4 class="h5 mb-3">AI-Powered Matching</h4>
+                            <p class="text-muted mb-0">Smart candidate ranking system that finds your perfect match</p>
                         </div>
                     </div>
-                    <div class="col-md-4 col-sm-6 col-xs-12 wow fadeInUp">
-                        <div class="single-block">
-                            <div class="icon color-two middle-block"><i class="flaticon-bar-chart2"></i></div>
-                            <h6>Automated Onboarding Solutions</h6>
-                            <h5><a href="#" class="tran3s">Seamless integration &amp; Reduced workload</a></h5>
+                    
+                    <div class="col-md-4 animate__animated animate__fadeInUp" style="animation-delay: 0.2s">
+                        <div class="service-card h-100 p-4 text-center">
+                            <div class="service-icon mb-4">
+                                <i class="fas fa-cogs fa-2x"></i>
+                            </div>
+                            <h4 class="h5 mb-3">Automated Workflows</h4>
+                            <p class="text-muted mb-0">Streamlined processes that save time and reduce complexity</p>
                         </div>
                     </div>
-                    <div class="col-md-4 hidden-sm col-xs-12 wow fadeInRight">
-                        <div class="single-block">
-                            <div class="icon color-three"><i class="flaticon-diamond"></i></div>
-                            <h6>AI-Driven Recruitment</h6>
-                            <h5><a href="#" class="tran3s">Smarter hiring &amp; Faster results</a></h5>
+                    
+                    <div class="col-md-4 animate__animated animate__fadeInUp" style="animation-delay: 0.3s">
+                        <div class="service-card h-100 p-4 text-center">
+                            <div class="service-icon mb-4">
+                                <i class="fas fa-chart-line fa-2x"></i>
+                            </div>
+                            <h4 class="h5 mb-3">Analytics & Insights</h4>
+                            <p class="text-muted mb-0">Data-driven decisions for better hiring outcomes</p>
                         </div>
                     </div>
                 </div>
             </div>
-        </div>
-
-        <!-- More About Us Section -->
-        <div class="more-about-us bg-color">
-            <div class="container">
-                <div class="row">
-                    <div class="col-lg-7 col-md-offset-5">
-                        <div class="main-content">
-                            <h2>Leading the Future of AI-Driven Recruitment in Asia &amp; and across other Marketing Domains.</h2>
-                            <div class="main-wrapper">
-                                <h4>Unmatched Innovation in Automated Recruitment</h4>
-                                <p>We lead AI-driven recruitment in Asia with innovative, automated solutions. Our platform streamlines hiring through smart CV shortlisting, role-specific workflows, and seamless onboarding, reducing time-to-hire while ensuring accuracy &amp; Tailored for growth, we give organizations a competitive edge in the fast-paced market.</p>
-                                <img src="{{ asset('images/home/sign.png') }}" alt="sign">
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Services Section -->
-        <div class="home-service-section">
-            <div class="container">
-                <div class="col-md-9 col-md-offset-3 main-container">
-                    <div class="theme-title">
-                        <h6>Our Services</h6>
-                        <h2>We provide wide range of web &amp; <br>business services.</h2>
-                        <p>We've strong work history with different business services</p>
-                        <a href="#" class="tran3s">See All Services</a>
-                    </div>
-                    <ul class="clearfix row">
-                        <li class="col-md-6">
-                            <div>
-                                <i class="flaticon-user"></i>
-                                <h5><a href="#" class="tran3s">AI-Powered CV Shortlisting</a></h5>
-                                <p>Automated, accurate candidate ranking in seconds.</p>
-                            </div>
-                        </li>
-                        <li class="col-md-6">
-                            <div>
-                                <i class="flaticon-layers"></i>
-                                <h5><a href="#" class="tran3s">Role-Specific Workflows</a></h5>
-                                <p>Tailored interfaces for streamlined task management.</p>
-                            </div>
-                        </li>
-                        <li class="col-md-6">
-                            <div>
-                                <i class="flaticon-bar-chart"></i>
-                                <h5><a href="#" class="tran3s">Efficient Onboarding &amp; Automation</a></h5>
-                                <p>Seamless integration for new hire processes.</p>
-                            </div>
-                        </li>
-                        <li class="col-md-6">
-                            <div>
-                                <i class="flaticon-smartphone"></i>
-                                <h5><a href="#" class="tran3s">Advanced Analytics and Reporting</a></h5>
-                                <p>Data-driven insights for smarter recruitment decisions.</p>
-                            </div>
-                        </li>
-                    </ul>
-                </div>
-                <img src="{{ asset('images/home/shape-2.png') }}" alt="Image" class="wow fadeInLeft">
-            </div>
-        </div>
+        </section>
 
         <!-- Testimonial Section -->
-        <div class="two-section-wrapper">
-            <div class="testimonial-section bg-image">
-                <div class="container">
-                    <div class="main-container col-md-6 col-md-offset-6">
-                        <div class="theme-title">
-                            <h6>Feedback</h6>
-                            <h2>Check what's our Head <br>Say about HireSmart</h2>
-                        </div>
-                        <div class="testimonial-slider">
-                            <div class="item">
-                                <div class="wrapper">
-                                    <p>The Principal of SZABIST commends the project for its innovative use of AI in recruitment, highlighting its potential to transform traditional hiring &amp; This solution exemplifies how technology can streamline processes and improve accuracy</p>
-                                    <div class="name clearfix">
-                                        <img src="{{ asset('images/101.png') }}" alt="">
-                                        <h5>Mr. Khusro Pervaiz</h5>
-                                        <span>Head of Campus</span>
-                                    </div>
-                                </div>
+        <section class="testimonial-section py-5">
+            <div class="container py-5">
+                <div class="row justify-content-center">
+                    <div class="col-lg-8 text-center animate__animated animate__fadeInUp">
+                        <h2 class="section-title mb-5">What Our Leaders Say</h2>
+                        <div class="testimonial-card p-4 p-md-5">
+                            <div class="testimonial-image mb-4">
+                                <img src="{{ asset('images/101.png') }}" alt="Mr. Khusro Pervaiz" class="rounded-circle" width="120" height="120" style="object-fit: cover; object-position: center top;">
+        </div>
+                            <p class="lead mb-4">"The innovative use of AI in recruitment exemplifies how technology can streamline processes and improve accuracy."</p>
+                            <div class="text-center">
+                                <h5 class="mb-1 fw-bold">Mr. Khusro Pervaiz</h5>
+                                <span class="text-muted">Head of Campus</span>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
-        </div>
+        </section>
 
         <!-- Footer -->
-        <footer class="bg-one">
+        <footer class="py-5 bg-light">
             <div class="container">
                 <div class="row">
-                    <div class="col-md-3 col-sm-6 col-xs-12">
-                        <div class="footer-logo">
-                            <a href="{{ url('/') }}"><img src="{{ asset('images/logo/szabist-logo.jpeg') }}" alt="Logo"></a>
-                            <h5><a href="#" class="tran3s">Street 9, Plot 67, Sector H-8/4, Islamabad, Pakistan</a></h5>
-                            <h6 class="p-color">careers@szabist-isb.edu.pk</h6>
-                            <h6 class="p-color">+92-51-4863363-65</h6>
+                    <!-- Address Section -->
+                    <div class="col-md-4 mb-4 mb-md-0">
+                        <img src="{{ asset('images/logo/szabist-logo.jpeg') }}" alt="SZABIST" class="img-fluid mb-4" style="height: 50px;">
+                        <p class="text-muted mb-2">Street 9, Plot 67, Sector H-8/4</p>
+                        <p class="text-muted mb-2">Islamabad, Pakistan</p>
+                        <p class="text-muted mb-2">careers@szabist-isb.edu.pk</p>
+                        <p class="text-muted mb-0">+92-51-4863363-65</p>
+                    </div>
+
+                    <!-- Quick Links Section -->
+                    <div class="col-md-4 mb-4 mb-md-0">
+                        <h5 class="mb-4">Quick Links</h5>
+                        <ul class="list-unstyled">
+                            <li class="mb-2">
+                                <a href="#" class="text-decoration-none text-muted">How it Works</a>
+                        </li>
+                            <li class="mb-2">
+                                <a href="#" class="text-decoration-none text-muted">About Us</a>
+                        </li>
+                            <li class="mb-2">
+                                <a href="#" class="text-decoration-none text-muted">Contact</a>
+                        </li>
+                    </ul>
+        </div>
+
+                    <!-- Newsletter Section -->
+                    <div class="col-md-4">
+                        <h5 class="mb-4">Subscribe to Newsletter</h5>
+                        <form action="{{ route('subscribe') }}" method="POST" class="subscribe-form">
+                            @csrf
+                            <div class="input-group">
+                                <input type="email" name="email" class="form-control" placeholder="Enter your email" required>
+                                <button type="submit" class="subscribe-button">Subscribe</button>
+                            </div>
+                            @if(session('success'))
+                                <div class="alert alert-success">
+                                    {{ session('success') }}
+                                </div>
+                            @endif
+                            @error('email')
+                                <div class="alert alert-danger">
+                                    {{ $message }}
                         </div>
-                    </div>
-                    <div class="col-md-3 col-sm-6 col-xs-12 footer-list">
-                        <h4>Quick Links</h4>
-                        <ul>
-                            <li><a href="#" class="tran3s">How it Works</a></li>
-                        </ul>
-                    </div>
-                    <div class="col-md-3 col-sm-6 col-xs-12 footer-subscribe">
-                        <h4>Subscribe Us</h4>
-                        <form action="#">
-                            <input type="text" placeholder="Enter your mail">
+                            @enderror
                         </form>
                     </div>
-                </div>
-                <div class="bottom-footer clearfix">
-                    <p class="float-left">&copy; 2023 <a href="#" class="tran3s p-color">HireSmart</a>. All rights reserved</p>
                 </div>
             </div>
         </footer>
 
-        <!-- Scroll Top Button -->
-        <button class="scroll-top tran3s">
-            <i class="fa fa-angle-up" aria-hidden="true"></i>
-        </button>
+                <!-- Copyright -->
+                <div class="border-top mt-4 pt-4 text-center">
+                    <p class="text-muted mb-0 small">© 2023 HireSmart. All rights reserved.</p>
+        </div>
+
+        <!-- Chatbot -->
+        <div class="chatbot-container">
+            <div class="chatbot-toggle" id="chatbot-toggle">
+                <i class="fas fa-comments"></i>
+            </div>
+            <div class="chatbot-box" id="chatbot-box">
+                <div class="chatbot-header">
+                    <h5 class="chatbot-title">SZABIST Recruitment Assistant</h5>
+                    <button id="chatbot-close" aria-label="Close chatbot">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <div class="chatbot-messages" id="chatbot-messages">
+                    <!-- Welcome message will be added by JavaScript -->
+                </div>
+                <div class="chatbot-input-container">
+                    <input type="text" id="chatbot-input" class="chatbot-input" placeholder="Type your message...">
+                    <button id="chatbot-send" class="chatbot-send-btn">
+                        <i class="fas fa-paper-plane"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <style>
+            .chatbot-container {
+                position: fixed;
+                bottom: 20px;
+                right: 20px;
+                z-index: 10000;
+            }
+            
+            #chatbot-toggle {
+                width: 60px;
+                height: 60px;
+                background-color: #4a6cf7;
+                border-radius: 50%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                cursor: pointer;
+                box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+                transition: all 0.3s ease;
+                z-index: 10000;
+                position: relative;
+            }
+            
+            #chatbot-toggle:hover {
+                transform: scale(1.1);
+            }
+            
+            .chatbot-box {
+                position: fixed;
+                right: 20px;
+                bottom: 90px !important;
+                width: 320px;
+                height: 450px;
+                background-color: white;
+                border-radius: 15px;
+                box-shadow: 0 5px 20px rgba(0, 0, 0, 0.2);
+                display: flex;
+                flex-direction: column;
+                transform: translateY(20px);
+                opacity: 0;
+                transition: all 0.3s ease;
+                z-index: 10001;
+                max-height: 80vh; /* Ensure it doesn't exceed 80% of viewport height */
+                visibility: hidden;
+            }
+            
+            .chatbot-box.active {
+                transform: translateY(0);
+                opacity: 1;
+                visibility: visible;
+                bottom: 90px !important;
+            }
+            
+            .chatbot-header {
+                display: flex;
+                align-items: center;
+                padding: 15px;
+                background-color: #4a6cf7;
+                color: white;
+                border-top-left-radius: 15px;
+                border-top-right-radius: 15px;
+            }
+            
+            .chatbot-title {
+                flex-grow: 1;
+                font-weight: 600;
+            }
+            
+            #chatbot-close {
+                background: none;
+                border: none;
+                color: white;
+                font-size: 20px;
+                cursor: pointer;
+            }
+            
+            .chatbot-messages {
+                flex-grow: 1;
+                padding: 15px;
+                overflow-y: auto;
+                display: flex;
+                flex-direction: column;
+            }
+            
+            .message {
+                max-width: 80%;
+                padding: 10px 15px;
+                margin-bottom: 10px;
+                border-radius: 15px;
+                word-wrap: break-word;
+            }
+            
+            .bot-message {
+                background-color: #f1f1f1;
+                align-self: flex-start;
+                border-bottom-left-radius: 5px;
+            }
+            
+            .user-message {
+                background-color: #4a6cf7;
+                color: white;
+                align-self: flex-end;
+                border-bottom-right-radius: 5px;
+            }
+            
+            .chatbot-input-container {
+                display: flex;
+                align-items: center;
+                padding: 10px 15px;
+                border-top: 1px solid #e0e0e0;
+            }
+            
+            #chatbot-input {
+                flex-grow: 1;
+                padding: 10px;
+                border: 1px solid #e0e0e0;
+                border-radius: 20px;
+                outline: none;
+            }
+            
+            #chatbot-send {
+                background-color: #4a6cf7;
+                color: white;
+                border: none;
+                width: 40px;
+                height: 40px;
+                border-radius: 50%;
+                margin-left: 10px;
+                cursor: pointer;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                transition: all 0.3s ease;
+            }
+            
+            #chatbot-send:hover {
+                background-color: #3a57e8;
+            }
+            
+            .typing-indicator {
+                display: flex;
+                align-items: center;
+                background-color: #f1f1f1;
+                padding: 10px 15px;
+                border-radius: 15px;
+                border-bottom-left-radius: 5px;
+                align-self: flex-start;
+                margin-bottom: 10px;
+                opacity: 0;
+                transition: opacity 0.3s ease;
+            }
+            
+            .typing-indicator.active {
+                opacity: 1;
+            }
+            
+            .typing-indicator span {
+                width: 8px;
+                height: 8px;
+                background-color: #666;
+                border-radius: 50%;
+                margin: 0 2px;
+                display: inline-block;
+                animation: typing 1s infinite ease-in-out;
+            }
+            
+            .typing-indicator span:nth-child(2) {
+                animation-delay: 0.2s;
+            }
+            
+            .typing-indicator span:nth-child(3) {
+                animation-delay: 0.4s;
+            }
+            
+            @keyframes typing {
+                0% { transform: translateY(0); }
+                50% { transform: translateY(-5px); }
+                100% { transform: translateY(0); }
+            }
+            
+            @media (max-width: 576px) {
+                .chatbot-box {
+                    width: 90%;
+                    right: 5%;
+                    max-height: 70vh;
+                }
+            }
+        </style>
+
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                const chatbotToggle = document.getElementById('chatbot-toggle');
+                const chatbotBox = document.getElementById('chatbot-box');
+                const chatbotClose = document.getElementById('chatbot-close');
+                const chatbotInput = document.getElementById('chatbot-input');
+                const chatbotSend = document.getElementById('chatbot-send');
+                const chatbotMessages = document.getElementById('chatbot-messages');
+                
+                // Toggle chatbot
+                chatbotToggle.addEventListener('click', function() {
+                    // Position the chatbot box properly
+                    const windowHeight = window.innerHeight;
+                    const boxHeight = 450; // height of the box
+                    
+                    // Check if the box would go off the top of the screen
+                    const bottomPosition = Math.min(80, Math.max(20, windowHeight - boxHeight - 20));
+                    chatbotBox.style.bottom = bottomPosition + 'px';
+                    
+                    // Show the chatbot box
+                    chatbotBox.classList.add('active');
+                    chatbotToggle.style.display = 'none';
+                });
+                
+                // Ensure proper positioning on window resize
+                window.addEventListener('resize', function() {
+                    if (chatbotBox.classList.contains('active')) {
+                        const windowHeight = window.innerHeight;
+                        const boxHeight = 450; // height of the box
+                        const bottomPosition = Math.min(80, Math.max(20, windowHeight - boxHeight - 20));
+                        chatbotBox.style.bottom = bottomPosition + 'px';
+                    }
+                });
+                
+                // Close chatbot
+                chatbotClose.addEventListener('click', function() {
+                    chatbotBox.classList.remove('active');
+                    chatbotToggle.style.display = 'flex';
+                });
+                
+                // Send message when send button is clicked
+                chatbotSend.addEventListener('click', sendMessage);
+                
+                // Send message when Enter key is pressed in input field
+                chatbotInput.addEventListener('keypress', function(e) {
+                    if (e.key === 'Enter') {
+                        sendMessage();
+                    }
+                });
+                
+                // Function to send message
+                function sendMessage() {
+                    const message = chatbotInput.value.trim();
+                    if (message === '') return;
+                    
+                    // Add user message to chat
+                    addMessage(message, 'user');
+                    
+                    // Clear input field
+                    chatbotInput.value = '';
+                    
+                    // Show typing indicator
+                    const typingIndicator = document.createElement('div');
+                    typingIndicator.className = 'typing-indicator';
+                    for (let i = 0; i < 3; i++) {
+                        const dot = document.createElement('span');
+                        typingIndicator.appendChild(dot);
+                    }
+                    chatbotMessages.appendChild(typingIndicator);
+                    
+                    // Add active class after a small delay to trigger animation
+                    setTimeout(() => typingIndicator.classList.add('active'), 10);
+                    
+                    // Scroll to bottom
+                    chatbotMessages.scrollTop = chatbotMessages.scrollHeight;
+                    
+                    // Get CSRF token
+                    const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+                    
+                    // Send message to server
+                    fetch('/chat', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': csrfToken
+                        },
+                        body: JSON.stringify({ message: message })
+                    })
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('Network response was not ok');
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        // Remove typing indicator
+                        if (typingIndicator) {
+                            typingIndicator.remove();
+                        }
+                        
+                        // Add bot response to chat
+                        if (data.message) {
+                            addMessage(data.message, 'bot');
+                        } else {
+                            addMessage("I'm sorry, I couldn't process your request at this time.", 'bot');
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        
+                        // Remove typing indicator
+                        if (typingIndicator) {
+                            typingIndicator.remove();
+                        }
+                        
+                        // Add error message
+                        addMessage("Sorry, there was an error processing your request. Please try again later.", 'bot');
+                    });
+                }
+                
+                // Function to add message to chat
+                function addMessage(text, sender) {
+                    const messageElement = document.createElement('div');
+                    messageElement.className = `message ${sender}-message`;
+                    messageElement.textContent = text;
+                    
+                    chatbotMessages.appendChild(messageElement);
+                    
+                    // Scroll to bottom
+                    chatbotMessages.scrollTop = chatbotMessages.scrollHeight;
+                }
+                
+                // Add initial welcome message
+                addMessage("Hello! I'm the SZABIST recruitment assistant. How can I help you with your job application today?", 'bot');
+            });
+        </script>
     </div>
 
+    <!-- Add animate.css for animations -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" defer>
+
     <!-- Scripts -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const loader = document.getElementById('loader-wrapper');
+            const mainContent = document.querySelector('.main-page-wrapper');
+            
+            // Show loader and ensure main content is visible but transparent
+            if (loader && mainContent) {
+                loader.style.display = 'flex';
+                mainContent.style.opacity = '0';
+                mainContent.style.display = 'block';
+            }
+        });
+
+        window.addEventListener('load', function() {
+            const loader = document.getElementById('loader-wrapper');
+            const mainContent = document.querySelector('.main-page-wrapper');
+            
+            if (loader && mainContent) {
+                // Hide loader and show content
+                setTimeout(function() {
+                    loader.style.opacity = '0';
+                    mainContent.style.opacity = '1';
+                    
+                    setTimeout(function() {
+                        loader.style.display = 'none';
+                    }, 300);
+                }, 500);
+            }
+        });
+    </script>
+    
+    <!-- Defer non-critical scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="{{ asset('js/theme.js') }}"></script>
     <script src="{{ asset('js/jquery.appear.js') }}"></script>
     <script src="{{ asset('js/jquery.countTo.js') }}"></script>
-    <script src="{{ asset('js/theme.js') }}"></script>
-    <script src="{{ asset('js/jquery.2.2.3.min.js') }}"></script>
-    <script src="{{ asset('js/jquery.fancybox.min.js') }}"></script>
-    <script src="{{ asset('js/owl.carousel.min.js') }}"></script>
     <script src="{{ asset('js/wow.min.js') }}"></script>
-    <script src="{{ asset('js/menu.js') }}"></script>
-    <script src="{{ asset('js/jquery.mobile.customized.min.js') }}"></script>
-    <script src="{{ asset('js/jquery.easing.1.3.js') }}"></script>
-    <script src="{{ asset('js/camera.min.js') }}"></script>
-    <script src="{{ asset('js/bootstrap-select.js') }}"></script>
-    <script src="{{ asset('js/bootstrap.min.js') }}"></script>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const subscribeForm = document.querySelector('.subscribe-form');
+        
+        if (subscribeForm) {
+            const createAlert = (message, type) => {
+                const alert = document.createElement('div');
+                alert.className = `alert alert-${type}`;
+                alert.textContent = message;
+                return alert;
+            };
+
+            const removeExistingAlerts = () => {
+                subscribeForm.querySelectorAll('.alert').forEach(alert => alert.remove());
+            };
+
+            subscribeForm.addEventListener('submit', async function(e) {
+                e.preventDefault();
+                
+                const emailInput = this.querySelector('input[name="email"]');
+                const submitButton = this.querySelector('button[type="submit"]');
+                const csrfToken = this.querySelector('input[name="_token"]').value;
+                
+                // Remove any existing alerts
+                removeExistingAlerts();
+                
+                // Show loading state
+                submitButton.disabled = true;
+                submitButton.textContent = 'Subscribing...';
+                
+                // Show loading message
+                const loadingAlert = createAlert('Processing your subscription...', 'info');
+                this.appendChild(loadingAlert);
+                
+                try {
+                    const formData = new FormData();
+                    formData.append('email', emailInput.value);
+                    formData.append('_token', csrfToken);
+                    
+                    const response = await fetch(this.action, {
+                        method: 'POST',
+                        body: formData,
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest'
+                        }
+                    });
+                    
+                    // Remove loading message
+                    loadingAlert.remove();
+                    
+                    if (response.redirected) {
+                        window.location.href = response.url;
+                        return;
+                    }
+                    
+                    const data = await response.json();
+                    
+                    if (response.ok) {
+                        // Show success message
+                        const successAlert = createAlert(data.message || 'Successfully subscribed!', 'success');
+                        this.appendChild(successAlert);
+                        
+                        // Clear the input
+                        emailInput.value = '';
+                    } else {
+                        throw new Error(data.message || 'Subscription failed');
+                    }
+                } catch (error) {
+                    // Show error message
+                    const errorAlert = createAlert(error.message || 'Something went wrong. Please try again.', 'danger');
+                    this.appendChild(errorAlert);
+                } finally {
+                    submitButton.disabled = false;
+                    submitButton.textContent = 'Subscribe';
+                    
+                    // Auto-hide alerts after 3 seconds
+                    const alerts = this.querySelectorAll('.alert');
+                    alerts.forEach(function(alert) {
+                        setTimeout(function() {
+                            alert.style.transition = 'opacity 0.5s ease';
+                            alert.style.opacity = '0';
+                            setTimeout(function() {
+                                alert.remove();
+                            }, 500);
+                        }, 3000);
+                    });
+                }
+            });
+        }
+    });
+    </script>
 </body>
 </html>
