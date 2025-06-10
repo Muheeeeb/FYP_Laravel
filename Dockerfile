@@ -8,9 +8,12 @@ RUN apt-get update && apt-get install -y \
     libonig-dev \
     libxml2-dev \
     zip \
-    unzip \
-    nodejs \
-    npm
+    unzip
+
+# Install Node.js 18.x and npm
+RUN curl -fsSL https://deb.nodesource.com/setup_18.x | bash - \
+    && apt-get install -y nodejs \
+    && npm install -g npm@latest
 
 # Clear cache
 RUN apt-get clean && rm -rf /var/lib/apt/lists/*
@@ -24,7 +27,13 @@ COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 # Set working directory
 WORKDIR /var/www/html
 
-# Copy existing application directory
+# Copy composer files first to leverage Docker cache
+COPY composer.json composer.lock ./
+
+# Install composer dependencies
+RUN composer install --no-scripts --no-autoloader --no-dev
+
+# Copy the rest of the application
 COPY . .
 
 # Create .env file with environment variables
@@ -53,27 +62,27 @@ MAIL_ENCRYPTION=tls\n\
 MAIL_FROM_ADDRESS=\${MAIL_FROM_ADDRESS}\n\
 MAIL_FROM_NAME=\${APP_NAME}" > .env
 
-# Install dependencies
-RUN composer install --no-interaction --no-dev --optimize-autoloader
+# Generate optimized autoload files
+RUN composer dump-autoload --optimize
 
 # Generate application key
 RUN php artisan key:generate
 
-# Install Node.js dependencies and build assets
-RUN npm install && npm run build
+# Set up storage directory
+RUN mkdir -p storage/framework/{sessions,views,cache} \
+    && chmod -R 775 storage/framework
 
-# Copy Apache configuration
-COPY apache.conf /etc/apache2/sites-available/000-default.conf
+# Install NPM dependencies and build assets
+COPY package*.json ./
+RUN npm ci && npm run build
 
-# Enable Apache modules
-RUN a2enmod rewrite
-
-# Set permissions
+# Set proper permissions
 RUN chown -R www-data:www-data /var/www/html \
     && chmod -R 755 /var/www/html/storage
 
-# Expose port 80
-EXPOSE 80
+# Configure Apache
+COPY apache.conf /etc/apache2/sites-available/000-default.conf
+RUN a2enmod rewrite
 
 # Start Apache
 CMD ["apache2-foreground"] 
