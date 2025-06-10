@@ -46,10 +46,6 @@ RUN mkdir -p /var/www/html/storage/framework/sessions \
 # Install dependencies
 RUN composer install --no-dev --optimize-autoloader
 
-# Create debug file to verify permissions
-RUN echo "<?php phpinfo(); ?>" > public/debug.php \
-    && echo "<?php error_log('Storage test at: ' . date('Y-m-d H:i:s')); echo 'Testing storage write...'; file_put_contents('../storage/logs/test.log', 'Test write at: ' . date('Y-m-d H:i:s')); echo 'Done!'; ?>" > public/storage-test.php
-
 # Set ServerName in Apache
 RUN echo "ServerName localhost" >> /etc/apache2/apache2.conf
 
@@ -61,6 +57,7 @@ RUN echo '<VirtualHost *:80>\n\
         Options Indexes FollowSymLinks\n\
         AllowOverride All\n\
         Require all granted\n\
+        DirectoryIndex index.php\n\
     </Directory>\n\
     ErrorLog ${APACHE_LOG_DIR}/error.log\n\
     CustomLog ${APACHE_LOG_DIR}/access.log combined\n\
@@ -68,12 +65,6 @@ RUN echo '<VirtualHost *:80>\n\
 
 # Set proper ownership
 RUN chown -R www-data:www-data /var/www/html
-
-# Generate key and optimize
-RUN php artisan key:generate --force \
-    && php artisan config:clear \
-    && php artisan cache:clear \
-    && php artisan config:cache
 
 # Start Apache
 CMD ["apache2-foreground"] 
