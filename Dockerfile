@@ -16,6 +16,13 @@ RUN apt-get clean && rm -rf /var/lib/apt/lists/*
 # Install PHP extensions
 RUN docker-php-ext-install pdo_mysql mbstring exif pcntl bcmath gd
 
+# Configure PHP for development
+RUN echo "display_errors = On" >> /usr/local/etc/php/php.ini \
+    && echo "display_startup_errors = On" >> /usr/local/etc/php/php.ini \
+    && echo "error_reporting = E_ALL" >> /usr/local/etc/php/php.ini \
+    && echo "log_errors = On" >> /usr/local/etc/php/php.ini \
+    && echo "error_log = /dev/stderr" >> /usr/local/etc/php/php.ini
+
 # Get latest Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
@@ -51,24 +58,24 @@ MAIL_ENCRYPTION=tls\n\
 MAIL_FROM_ADDRESS=\${MAIL_FROM_ADDRESS}\n\
 MAIL_FROM_NAME=\${APP_NAME}" > .env
 
-# Install composer dependencies
-RUN composer install --no-dev --optimize-autoloader
-
-# Generate application key
-RUN php artisan key:generate
-
-# Set up storage directory
+# Create storage directory and set permissions first
 RUN mkdir -p storage/framework/{sessions,views,cache} \
     && mkdir -p storage/logs \
     && chmod -R 777 storage \
     && chmod -R 777 bootstrap/cache
 
-# Configure Apache
-COPY apache.conf /etc/apache2/sites-available/000-default.conf
-RUN a2enmod rewrite
+# Install composer dependencies
+RUN composer install --no-dev --optimize-autoloader
+
+# Generate application key if not exists
+RUN php artisan key:generate --force
 
 # Set proper permissions
 RUN chown -R www-data:www-data /var/www/html
+
+# Configure Apache
+COPY apache.conf /etc/apache2/sites-available/000-default.conf
+RUN a2enmod rewrite
 
 # Start Apache
 CMD ["apache2-foreground"] 
