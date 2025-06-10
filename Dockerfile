@@ -28,7 +28,7 @@ COPY . .
 # Create .env file with environment variables
 RUN echo "APP_NAME=HireSmart\n\
 APP_ENV=production\n\
-APP_DEBUG=false\n\
+APP_DEBUG=true\n\
 APP_URL=\${RENDER_EXTERNAL_URL}\n\
 DB_CONNECTION=mysql\n\
 DB_HOST=\${MYSQLHOST}\n\
@@ -59,15 +59,16 @@ RUN php artisan key:generate
 
 # Set up storage directory
 RUN mkdir -p storage/framework/{sessions,views,cache} \
-    && chmod -R 775 storage/framework
-
-# Set proper permissions
-RUN chown -R www-data:www-data /var/www/html \
-    && chmod -R 755 /var/www/html/storage
+    && mkdir -p storage/logs \
+    && chmod -R 777 storage \
+    && chmod -R 777 bootstrap/cache
 
 # Configure Apache
 COPY apache.conf /etc/apache2/sites-available/000-default.conf
 RUN a2enmod rewrite
+
+# Set proper permissions
+RUN chown -R www-data:www-data /var/www/html
 
 # Start Apache
 CMD ["apache2-foreground"] 
