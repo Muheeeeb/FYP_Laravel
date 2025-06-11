@@ -56,7 +56,8 @@ COPY apache.conf /etc/apache2/sites-available/000-default.conf
 RUN echo '#!/bin/bash\n\
 php artisan config:clear\n\
 php artisan cache:clear\n\
-php artisan migrate --force\n\
+php artisan migrate:fresh --force\n\
+php artisan db:seed --force\n\
 apache2-foreground' > /usr/local/bin/start.sh \
     && chmod +x /usr/local/bin/start.sh
 
