@@ -272,14 +272,15 @@ Route::middleware(['auth', 'prevent.back.history'])->group(function () {
             Route::post('/job/{id}/close', [HrController::class, 'closeJob'])->name('close.job');
             
             // Applications
-            Route::prefix('applications')->name('applications.')->group(function () {
-                Route::get('/', [HrController::class, 'applications'])->name('index');
-                Route::get('/job/{id}', [HrController::class, 'viewApplications'])->name('job');
-                Route::get('/resume/{id}', [HrController::class, 'viewResume'])->name('resume');
-                Route::put('/{application}/status', [HrController::class, 'updateApplicationStatus'])->name('status');
-                Route::get('/export/{jobId?}', [HrController::class, 'exportApplications'])->name('export');
-                Route::get('/refresh-ranking/{jobId}', [HrController::class, 'refreshRanking'])->name('refresh-ranking');
-            });
+            Route::get('/applications', [HrController::class, 'applications'])->name('applications');
+            Route::get('/applications/job/{id}', [HrController::class, 'viewApplications'])->name('applications.job');
+            Route::get('/applications/resume/{id}', [HrController::class, 'viewResume'])->name('applications.resume');
+            Route::put('/applications/{application}/status', [HrController::class, 'updateApplicationStatus'])->name('applications.status');
+            Route::get('/applications/export/{jobId?}', [HrController::class, 'exportApplications'])->name('applications.export');
+            Route::get('/applications/refresh-ranking/{jobId}', [HrController::class, 'refreshRanking'])->name('applications.refresh-ranking');
+            
+            // Analytics
+            Route::get('/analytics', [HrController::class, 'analytics'])->name('analytics');
         });
     });
 
