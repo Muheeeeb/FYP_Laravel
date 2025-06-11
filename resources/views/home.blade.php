@@ -531,8 +531,20 @@
                     }
                 });
                 
+                // Function to get a fresh CSRF token
+                async function refreshCsrfToken() {
+                    try {
+                        const response = await fetch('/csrf-token');
+                        const data = await response.json();
+                        return data.token;
+                    } catch (error) {
+                        console.error('Error refreshing CSRF token:', error);
+                        return null;
+                    }
+                }
+                
                 // Function to send message
-                function sendMessage() {
+                async function sendMessage() {
                     const message = chatbotInput.value.trim();
                     if (message === '') return;
                     
@@ -557,49 +569,42 @@
                     // Scroll to bottom
                     chatbotMessages.scrollTop = chatbotMessages.scrollHeight;
                     
-                    // Get CSRF token
-                    const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+                    // Get fresh CSRF token
+                    const token = await refreshCsrfToken();
                     
                     // Send message to server
                     fetch(`${baseUrl}/chat`, {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
-                            'X-CSRF-TOKEN': csrfToken,
+                            'X-CSRF-TOKEN': token || csrfToken,
                             'Accept': 'application/json'
                         },
                         body: JSON.stringify({ message: message })
                     })
                     .then(response => {
                         if (!response.ok) {
-                            console.error('Server Error:', response.status, response.statusText);
-                            throw new Error('Network response was not ok');
+                            console.error('Server Error:', response.status);
+                            return response.json().then(err => {
+                                throw new Error(err.message || 'Network response was not ok');
+                            });
                         }
                         return response.json();
                     })
                     .then(data => {
-                        // Remove typing indicator
-                        if (typingIndicator) {
-                            typingIndicator.remove();
+                        if (data.error) {
+                            throw new Error(data.message || 'Server error');
                         }
-                        
-                        // Add bot response to chat
-                        if (data.message) {
-                            addMessage(data.message, 'bot');
-                        } else {
-                            addMessage("I'm sorry, I couldn't process your request at this time.", 'bot');
-                        }
+                        appendMessage(data.message, 'bot');
                     })
                     .catch(error => {
                         console.error('Error:', error);
-                        
-                        // Remove typing indicator
-                        if (typingIndicator) {
-                            typingIndicator.remove();
-                        }
-                        
-                        // Add error message
-                        addMessage("Sorry, there was an error processing your request. Please try again later.", 'bot');
+                        appendMessage('Sorry, there was an error processing your request. Please try again later.', 'bot');
+                    })
+                    .finally(() => {
+                        // Re-enable the input and button
+                        messageInput.disabled = false;
+                        sendButton.disabled = false;
                     });
                 }
                 

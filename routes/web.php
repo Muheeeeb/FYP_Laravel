@@ -26,6 +26,7 @@ use App\Http\Controllers\TwoFactorController;
 use App\Http\Controllers\Admin\AdminPasswordResetController;
 use App\Http\Controllers\ChatbotController;
 use App\Http\Controllers\PersonalityTestController;
+use Illuminate\Support\Facades\URL;
 
 /*
 |--------------------------------------------------------------------------
@@ -82,6 +83,12 @@ Route::middleware(['guest'])->group(function () {
     })->name('password.reset');
     Route::post('/reset-password', [PasswordResetController::class, 'resetPassword'])
         ->name('password.update');
+});
+
+// Verification routes
+Route::middleware(['web', 'auth'])->group(function () {
+    Route::get('/verify', [AuthController::class, 'showVerifyForm'])->name('verify.form');
+    Route::post('/verify', [AuthController::class, 'verify'])->name('verify.code');
 });
 
 // Logout
@@ -250,30 +257,37 @@ Route::middleware(['auth', 'prevent.back.history'])->group(function () {
     });
 
     // HR Routes
-    Route::middleware(['auth', 'role:hr'])->prefix('hr')->name('hr.')->group(function () {
-        Route::get('/dashboard', [HrController::class, 'dashboard'])->name('dashboard');
-        
-        // Job Management
-        Route::get('/manage-jobs', [HrController::class, 'manageJobs'])->name('manage.jobs');
-        Route::post('/jobs/post/{id}', [HrController::class, 'postJob'])->name('post.job');
-        Route::delete('/jobs/{id}', [HrController::class, 'deleteJob'])->name('delete.job');
-        Route::post('/jobs/{id}/close', [HrController::class, 'closeJob'])->name('close.job');
-        
-        // Job Postings
-        Route::get('/job-posting', [HrController::class, 'jobPostings'])->name('job-posting');
-        Route::delete('/job-posting/{id}', [HrController::class, 'removeJobPosting'])->name('delete.job-posting');
-        
-        // Applications
-        Route::get('/applications', [HrController::class, 'applications'])->name('applications');
-        Route::get('/applications/job/{id}', [HrController::class, 'viewApplications'])->name('applications.job');
-        Route::get('/applications/export/{jobId?}', [HrController::class, 'exportApplications'])->name('applications.export');
-        Route::get('/application/{id}/resume', [HrController::class, 'viewResume'])->name('application.resume');
-        Route::put('/application/{application}/status', [HrController::class, 'updateApplicationStatus'])->name('application.status');
-        Route::get('/applications/refresh-ranking/{id}', [HrController::class, 'refreshRanking'])->name('applications.refresh-ranking');
-        
-        // Analytics
-        Route::get('/analytics', [HrController::class, 'analytics'])->name('analytics');
-        Route::post('/application/{id}/schedule-interview', [HrController::class, 'scheduleInterview'])->name('schedule-interview');
+    Route::middleware(['auth', 'role:hr', 'prevent.back.history'])->group(function () {
+        Route::prefix('hr')->name('hr.')->group(function () {
+            // Dashboard
+            Route::get('/dashboard', [HrController::class, 'dashboard'])->name('dashboard');
+            
+            // Applications
+            Route::prefix('applications')->name('applications')->group(function () {
+                Route::get('/', [HrController::class, 'applications'])->name('');
+                Route::get('/job/{id}', [HrController::class, 'viewApplications'])->name('.job');
+                Route::get('/resume/{id}', [HrController::class, 'viewResume'])->name('.resume');
+                Route::put('/{application}/status', [HrController::class, 'updateApplicationStatus'])->name('.status');
+                Route::get('/export/{jobId?}', [HrController::class, 'exportApplications'])->name('.export');
+                Route::get('/refresh-ranking/{jobId}', [HrController::class, 'refreshRanking'])->name('.refresh-ranking');
+            });
+            
+            // Job Postings
+            Route::prefix('job-posting')->name('job-posting')->group(function () {
+                Route::get('/', [HrController::class, 'jobPostings'])->name('');
+                Route::post('/{id}', [HrController::class, 'postJob'])->name('.post');
+                Route::delete('/{id}', [HrController::class, 'removeJobPosting'])->name('.remove');
+                Route::put('/{id}/close', [HrController::class, 'closeJob'])->name('.close');
+            });
+            
+            // Analytics
+            Route::get('/analytics', [HrController::class, 'analytics'])->name('analytics');
+            
+            // Error handling for common exceptions
+            Route::fallback(function () {
+                return response()->view('errors.404', [], 404);
+            });
+        });
     });
 
     // Job Titles Routes - accessible by HOD and HR
@@ -509,10 +523,6 @@ Route::middleware(['auth', 'role:hr'])->group(function () {
     Route::post('/hr/post-job/{id}', [HrController::class, 'postJob'])->name('hr.post-job');
 });
 
-// Add these new routes for 2FA
-Route::get('/verify', [AuthController::class, 'showVerifyForm'])->name('verify.form');
-Route::post('/verify', [AuthController::class, 'verify'])->name('verify.code');
-
 // Add middleware to protected routes
 Route::middleware(['auth', 'verify.2fa'])->group(function () {
     Route::get('/hr/dashboard', [HrController::class, 'dashboard'])->name('hr.dashboard');
@@ -525,14 +535,15 @@ Route::middleware(['auth', 'verify.2fa'])->group(function () {
 Route::get('/verify', [AuthController::class, 'showVerifyForm'])->name('verify.form');
 Route::post('/verify', [AuthController::class, 'verify'])->name('verify.code');
 
-Route::post('/chatbot/message', [ChatbotController::class, 'sendMessage'])
-    ->name('chatbot.message')
-    ->middleware('web');
-
 // Add new route for /chat endpoint
 Route::post('/chat', [ChatbotController::class, 'sendMessage'])
     ->name('chat.message')
-    ->middleware('web');
+    ->withoutMiddleware(['csrf']);
+
+// If in production, apply SSL middleware to all routes
+if (app()->environment('production')) {
+    URL::forceScheme('https');
+}
 
 // CSRF Token Route
 Route::get('/csrf-token', function () {
