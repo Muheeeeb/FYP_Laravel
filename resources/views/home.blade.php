@@ -480,7 +480,7 @@
 
         <script>
             // Get the base URL for the application
-            const baseUrl = window.location.origin;
+            const baseUrl = window.location.protocol + '//' + window.location.host;
             
             document.addEventListener('DOMContentLoaded', function() {
                 const chatbotToggle = document.getElementById('chatbot-toggle');
@@ -561,7 +561,7 @@
                     const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
                     
                     // Send message to server
-                    fetch(`${window.location.origin}/chat`, {
+                    fetch(`${baseUrl}/chat`, {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',

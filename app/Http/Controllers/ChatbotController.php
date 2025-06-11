@@ -194,11 +194,20 @@ class ChatbotController extends Controller
         $request->headers->set('Accept', 'application/json');
 
         try {
-            if (!env('OPENAI_API_KEY')) {
+            if (!$request->has('message')) {
+                \Log::error('ChatBot Error: No message provided');
+                throw new \Exception('Message is required');
+            }
+
+            $apiKey = env('OPENAI_API_KEY');
+            if (!$apiKey) {
+                \Log::error('ChatBot Error: OpenAI API key not found in environment');
                 throw new \Exception('OpenAI API key is not set');
             }
 
-            $open_ai = new OpenAi(env('OPENAI_API_KEY'));
+            $open_ai = new OpenAi($apiKey);
+            
+            \Log::info('ChatBot: Sending request to OpenAI', ['message' => $request->message]);
             
             $systemPrompt = "You are SZABIST's hiring platform assistant. Follow these rules:
 
@@ -254,21 +263,39 @@ class ChatbotController extends Controller
                 'max_tokens' => 800
             ]);
 
+            \Log::info('ChatBot: Received response from OpenAI', ['result' => $result]);
+
             $response = json_decode($result, true);
 
-            if (isset($response['choices'][0]['message']['content'])) {
-                return response()->json([
-                    'message' => $response['choices'][0]['message']['content']
-                ]);
-            } else {
+            if (!$response) {
+                \Log::error('ChatBot Error: Failed to decode OpenAI response', ['result' => $result]);
+                throw new \Exception('Invalid response from OpenAI');
+            }
+
+            if (isset($response['error'])) {
+                \Log::error('ChatBot Error: OpenAI API error', ['error' => $response['error']]);
+                throw new \Exception($response['error']['message'] ?? 'Error from OpenAI API');
+            }
+
+            if (!isset($response['choices'][0]['message']['content'])) {
+                \Log::error('ChatBot Error: Unexpected response format', ['response' => $response]);
                 throw new \Exception('Unexpected response format from OpenAI');
             }
 
+            return response()->json([
+                'message' => $response['choices'][0]['message']['content']
+            ]);
+
         } catch (\Exception $e) {
-            \Log::error('ChatBot Error: ' . $e->getMessage());
+            \Log::error('ChatBot Error: ' . $e->getMessage(), [
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+                'trace' => $e->getTraceAsString()
+            ]);
             
             return response()->json([
-                'message' => 'Sorry, I encountered an error. Please try again later. If the problem persists, please contact our HR department at hr@szabist.edu.pk'
+                'error' => true,
+                'message' => 'Sorry, I encountered an error. Please try again later.'
             ], 500);
         }
     }
