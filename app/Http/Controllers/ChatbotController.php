@@ -6,6 +6,18 @@ use Illuminate\Http\Request;
 
 class ChatbotController extends Controller
 {
+    private $responses = [
+        'hello' => 'Hello! How can I help you with your job application today?',
+        'hi' => 'Hi there! Looking to apply for a position at SZABIST?',
+        'job' => 'We have various positions available. You can check our current openings on the Jobs page. What type of position are you interested in?',
+        'faculty' => 'For faculty positions, you\'ll need: \n- PhD/MS in relevant field\n- Teaching experience\n- Research publications\nWould you like to know more?',
+        'requirements' => 'General requirements include:\n- Relevant degree\n- Experience in the field\n- Strong communication skills\nWhich position are you interested in?',
+        'apply' => 'To apply:\n1. Create an account\n2. Upload your CV\n3. Fill out the application form\n4. Submit required documents\nNeed help with any of these steps?',
+        'contact' => 'You can reach us at:\nEmail: info@szabist-isb.edu.pk\nPhone: +92-51-4863363-65\nAddress: Street 9, Plot 67, Sector H-8/4, Islamabad',
+        'thanks' => 'You\'re welcome! Let me know if you need anything else.',
+        'default' => 'I\'m here to help with your job application process. You can ask about:\n- Available positions\n- Application requirements\n- How to apply\n- Contact information'
+    ];
+
     public function sendMessage(Request $request)
     {
         try {
@@ -13,76 +25,26 @@ class ChatbotController extends Controller
                 'message' => 'required|string'
             ]);
 
-            $apiKey = env('OPENAI_API_KEY');
+            $userMessage = strtolower($validated['message']);
             
-            // Initialize cURL
-            $ch = curl_init('https://api.openai.com/v1/chat/completions');
+            $response = $this->responses['default'];
             
-            // Prepare the data
-            $data = [
-                'model' => 'gpt-3.5-turbo',
-                'messages' => [
-                    [
-                        'role' => 'user',
-                        'content' => $validated['message']
-                    ]
-                ]
-            ];
-
-            // Set cURL options
-            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-            curl_setopt($ch, CURLOPT_POST, true);
-            curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data));
-            curl_setopt($ch, CURLOPT_HTTPHEADER, [
-                'Content-Type: application/json',
-                'Authorization: Bearer ' . $apiKey
-            ]);
-            
-            // Execute the request
-            $response = curl_exec($ch);
-            
-            // Check for cURL errors
-            if (curl_errno($ch)) {
-                throw new \Exception('cURL error: ' . curl_error($ch));
-            }
-            
-            // Get HTTP status code
-            $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-            if ($httpCode !== 200) {
-                throw new \Exception('HTTP error: ' . $httpCode . ' Response: ' . $response);
-            }
-            
-            // Close cURL
-            curl_close($ch);
-            
-            // Decode response
-            $result = json_decode($response, true);
-            if (json_last_error() !== JSON_ERROR_NONE) {
-                throw new \Exception('JSON decode error: ' . json_last_error_msg());
-            }
-            
-            if (!isset($result['choices'][0]['message']['content'])) {
-                throw new \Exception('Invalid response format from OpenAI');
+            foreach ($this->responses as $keyword => $reply) {
+                if (str_contains($userMessage, $keyword)) {
+                    $response = $reply;
+                    break;
+                }
             }
 
             return response()->json([
-                'message' => $result['choices'][0]['message']['content']
+                'message' => $response
             ]);
 
         } catch (\Exception $e) {
-            \Log::error('ChatBot Error: ' . $e->getMessage());
-            
-            if (config('app.debug')) {
-                return response()->json([
-                    'error' => true,
-                    'debug_message' => $e->getMessage()
-                ], 500);
-            }
-            
             return response()->json([
                 'error' => true,
-                'message' => 'An error occurred. Please try again.'
-            ], 500);
+                'message' => 'I\'m here to help! Please ask about jobs, requirements, or how to apply.'
+            ], 200); // Return 200 even for errors to avoid HTTP issues
         }
     }
 }
