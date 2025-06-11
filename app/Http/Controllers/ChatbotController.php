@@ -6,45 +6,53 @@ use Illuminate\Http\Request;
 
 class ChatbotController extends Controller
 {
-    private $responses = [
-        'hello' => 'Hello! How can I help you with your job application today?',
-        'hi' => 'Hi there! Looking to apply for a position at SZABIST?',
-        'job' => 'We have various positions available. You can check our current openings on the Jobs page. What type of position are you interested in?',
-        'faculty' => 'For faculty positions, you\'ll need: \n- PhD/MS in relevant field\n- Teaching experience\n- Research publications\nWould you like to know more?',
-        'requirements' => 'General requirements include:\n- Relevant degree\n- Experience in the field\n- Strong communication skills\nWhich position are you interested in?',
-        'apply' => 'To apply:\n1. Create an account\n2. Upload your CV\n3. Fill out the application form\n4. Submit required documents\nNeed help with any of these steps?',
-        'contact' => 'You can reach us at:\nEmail: info@szabist-isb.edu.pk\nPhone: +92-51-4863363-65\nAddress: Street 9, Plot 67, Sector H-8/4, Islamabad',
-        'thanks' => 'You\'re welcome! Let me know if you need anything else.',
-        'default' => 'I\'m here to help with your job application process. You can ask about:\n- Available positions\n- Application requirements\n- How to apply\n- Contact information'
-    ];
-
     public function sendMessage(Request $request)
     {
         try {
-            $validated = $request->validate([
-                'message' => 'required|string'
-            ]);
+            $message = $request->input('message', '');
+            $message = strtolower(trim($message));
 
-            $userMessage = strtolower($validated['message']);
-            
-            $response = $this->responses['default'];
-            
-            foreach ($this->responses as $keyword => $reply) {
-                if (str_contains($userMessage, $keyword)) {
-                    $response = $reply;
-                    break;
-                }
-            }
+            $response = $this->getResponse($message);
 
-            return response()->json([
-                'message' => $response
-            ]);
+            return response()->json(['message' => $response]);
 
         } catch (\Exception $e) {
             return response()->json([
-                'error' => true,
-                'message' => 'I\'m here to help! Please ask about jobs, requirements, or how to apply.'
-            ], 200); // Return 200 even for errors to avoid HTTP issues
+                'message' => 'Hello! How can I help you with your job application today?'
+            ]);
         }
+    }
+
+    private function getResponse($message)
+    {
+        if (str_contains($message, 'hi') || str_contains($message, 'hello')) {
+            return 'Hello! How can I help you with your job application today?';
+        }
+
+        if (str_contains($message, 'job') || str_contains($message, 'position') || str_contains($message, 'vacancy')) {
+            return 'We have several positions available at SZABIST. You can view all current openings on our Jobs page. Are you looking for any specific role?';
+        }
+
+        if (str_contains($message, 'faculty') || str_contains($message, 'teacher') || str_contains($message, 'professor')) {
+            return 'For faculty positions, you\'ll need:\n- PhD/MS in relevant field\n- Teaching experience\n- Research publications\nWould you like to know more?';
+        }
+
+        if (str_contains($message, 'apply') || str_contains($message, 'how to')) {
+            return 'To apply for a position:\n1. Browse our current openings\n2. Click "Apply Now" on the desired position\n3. Fill out the application form\n4. Upload your CV/Resume\n5. Submit your application\n\nNeed help with any of these steps?';
+        }
+
+        if (str_contains($message, 'requirement') || str_contains($message, 'qualify') || str_contains($message, 'eligib')) {
+            return 'General requirements include:\n- Relevant degree\n- Required experience\n- Strong communication skills\n\nSpecific requirements vary by position. Which role are you interested in?';
+        }
+
+        if (str_contains($message, 'contact') || str_contains($message, 'reach') || str_contains($message, 'email')) {
+            return 'You can contact us at:\nEmail: info@szabist-isb.edu.pk\nPhone: +92-51-4863363-65\nAddress: Street 9, Plot 67, Sector H-8/4, Islamabad';
+        }
+
+        if (str_contains($message, 'thank')) {
+            return 'You\'re welcome! Let me know if you need anything else.';
+        }
+
+        return 'I\'m here to help with your job application process. You can ask about:\n- Available positions\n- Application requirements\n- How to apply\n- Contact information';
     }
 }

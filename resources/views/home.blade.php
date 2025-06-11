@@ -79,6 +79,104 @@
     background-color: rgba(254, 226, 226, 0.9);
     color: #991b1b;
 }
+
+/* Chatbot Styles */
+.chatbot-toggle {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background: #006dd7;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    z-index: 1000;
+    border: none;
+}
+
+.chatbot-container {
+    position: fixed;
+    bottom: 90px;
+    right: 20px;
+    width: 350px;
+    height: 500px;
+    background: white;
+    border-radius: 10px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    display: none;
+    flex-direction: column;
+    z-index: 1000;
+}
+
+.chatbot-container.active {
+    display: flex;
+}
+
+.chatbot-header {
+    padding: 15px;
+    background: #006dd7;
+    color: white;
+    border-radius: 10px 10px 0 0;
+    font-weight: bold;
+}
+
+.chatbot-messages {
+    flex: 1;
+    padding: 15px;
+    overflow-y: auto;
+}
+
+.message {
+    margin-bottom: 10px;
+    max-width: 80%;
+    padding: 10px;
+    border-radius: 10px;
+}
+
+.bot-message {
+    background: #f0f2f5;
+    margin-right: auto;
+}
+
+.user-message {
+    background: #006dd7;
+    color: white;
+    margin-left: auto;
+}
+
+.chatbot-input {
+    padding: 15px;
+    border-top: 1px solid #eee;
+    display: flex;
+    gap: 10px;
+}
+
+.chatbot-input input {
+    flex: 1;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 20px;
+    outline: none;
+}
+
+.chatbot-input button {
+    padding: 10px 20px;
+    background: #006dd7;
+    color: white;
+    border: none;
+    border-radius: 20px;
+    cursor: pointer;
+}
+
+.chatbot-input button:disabled {
+    background: #ccc;
+    cursor: not-allowed;
+}
 </style>
 
     <!-- Defer non-critical CSS -->
@@ -249,465 +347,104 @@
                                     {{ session('success') }}
                                 </div>
                             @endif
-                            @error('email')
+                            @if(session('error'))
                                 <div class="alert alert-danger">
-                                    {{ $message }}
-                        </div>
-                            @enderror
+                                    {{ session('error') }}
+                                </div>
+                            @endif
                         </form>
                     </div>
                 </div>
             </div>
         </footer>
 
-                <!-- Copyright -->
-                <div class="border-top mt-4 pt-4 text-center">
-                    <p class="text-muted mb-0 small">© 2023 HireSmart. All rights reserved.</p>
-        </div>
-
         <!-- Chatbot -->
-        <div class="chatbot-container">
-            <div class="chatbot-toggle" id="chatbot-toggle">
-                <i class="fas fa-comments"></i>
+        <button class="chatbot-toggle" onclick="toggleChatbot()">
+            <i class="fas fa-comments"></i>
+        </button>
+
+        <div class="chatbot-container" id="chatbot">
+            <div class="chatbot-header">
+                SZABIST Career Assistant
             </div>
-            <div class="chatbot-box" id="chatbot-box">
-                <div class="chatbot-header">
-                    <h5 class="chatbot-title">SZABIST Recruitment Assistant</h5>
-                    <button id="chatbot-close" aria-label="Close chatbot">
-                        <i class="fas fa-times"></i>
-                    </button>
+            <div class="chatbot-messages" id="chatMessages">
+                <div class="message bot-message">
+                    Hello! How can I help you with your job application today?
                 </div>
-                <div class="chatbot-messages" id="chatbot-messages">
-                    <!-- Welcome message will be added by JavaScript -->
-                </div>
-                <div class="chatbot-input-container">
-                    <input type="text" id="chatbot-input" class="chatbot-input" placeholder="Type your message...">
-                    <button id="chatbot-send" class="chatbot-send-btn">
-                        <i class="fas fa-paper-plane"></i>
-                    </button>
-                </div>
+            </div>
+            <div class="chatbot-input">
+                <input type="text" id="userInput" placeholder="Type your message..." onkeypress="handleKeyPress(event)">
+                <button onclick="sendMessage()" id="sendButton">Send</button>
             </div>
         </div>
-
-        <style>
-            .chatbot-container {
-                position: fixed;
-                bottom: 20px;
-                right: 20px;
-                z-index: 10000;
-            }
-            
-            #chatbot-toggle {
-                width: 60px;
-                height: 60px;
-                background-color: #4a6cf7;
-                border-radius: 50%;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                cursor: pointer;
-                box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-                transition: all 0.3s ease;
-                z-index: 10000;
-                position: relative;
-            }
-            
-            #chatbot-toggle:hover {
-                transform: scale(1.1);
-            }
-            
-            .chatbot-box {
-                position: fixed;
-                right: 20px;
-                bottom: 90px !important;
-                width: 320px;
-                height: 450px;
-                background-color: white;
-                border-radius: 15px;
-                box-shadow: 0 5px 20px rgba(0, 0, 0, 0.2);
-                display: flex;
-                flex-direction: column;
-                transform: translateY(20px);
-                opacity: 0;
-                transition: all 0.3s ease;
-                z-index: 10001;
-                max-height: 80vh; /* Ensure it doesn't exceed 80% of viewport height */
-                visibility: hidden;
-            }
-            
-            .chatbot-box.active {
-                transform: translateY(0);
-                opacity: 1;
-                visibility: visible;
-                bottom: 90px !important;
-            }
-            
-            .chatbot-header {
-                display: flex;
-                align-items: center;
-                padding: 15px;
-                background-color: #4a6cf7;
-                color: white;
-                border-top-left-radius: 15px;
-                border-top-right-radius: 15px;
-            }
-            
-            .chatbot-title {
-                flex-grow: 1;
-                font-weight: 600;
-            }
-            
-            #chatbot-close {
-                background: none;
-                border: none;
-                color: white;
-                font-size: 20px;
-                cursor: pointer;
-            }
-            
-            .chatbot-messages {
-                flex-grow: 1;
-                padding: 15px;
-                overflow-y: auto;
-                display: flex;
-                flex-direction: column;
-            }
-            
-            .message {
-                max-width: 80%;
-                padding: 10px 15px;
-                margin-bottom: 10px;
-                border-radius: 15px;
-                word-wrap: break-word;
-            }
-            
-            .bot-message {
-                background-color: #f1f1f1;
-                align-self: flex-start;
-                border-bottom-left-radius: 5px;
-            }
-            
-            .user-message {
-                background-color: #4a6cf7;
-                color: white;
-                align-self: flex-end;
-                border-bottom-right-radius: 5px;
-            }
-            
-            .chatbot-input-container {
-                display: flex;
-                align-items: center;
-                padding: 10px 15px;
-                border-top: 1px solid #e0e0e0;
-            }
-            
-            #chatbot-input {
-                flex-grow: 1;
-                padding: 10px;
-                border: 1px solid #e0e0e0;
-                border-radius: 20px;
-                outline: none;
-            }
-            
-            #chatbot-send {
-                background-color: #4a6cf7;
-                color: white;
-                border: none;
-                width: 40px;
-                height: 40px;
-                border-radius: 50%;
-                margin-left: 10px;
-                cursor: pointer;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                transition: all 0.3s ease;
-            }
-            
-            #chatbot-send:hover {
-                background-color: #3a57e8;
-            }
-            
-            .typing-indicator {
-                display: flex;
-                align-items: center;
-                background-color: #f1f1f1;
-                padding: 10px 15px;
-                border-radius: 15px;
-                border-bottom-left-radius: 5px;
-                align-self: flex-start;
-                margin-bottom: 10px;
-                opacity: 0;
-                transition: opacity 0.3s ease;
-            }
-            
-            .typing-indicator.active {
-                opacity: 1;
-            }
-            
-            .typing-indicator span {
-                width: 8px;
-                height: 8px;
-                background-color: #666;
-                border-radius: 50%;
-                margin: 0 2px;
-                display: inline-block;
-                animation: typing 1s infinite ease-in-out;
-            }
-            
-            .typing-indicator span:nth-child(2) {
-                animation-delay: 0.2s;
-            }
-            
-            .typing-indicator span:nth-child(3) {
-                animation-delay: 0.4s;
-            }
-            
-            @keyframes typing {
-                0% { transform: translateY(0); }
-                50% { transform: translateY(-5px); }
-                100% { transform: translateY(0); }
-            }
-            
-            @media (max-width: 576px) {
-                .chatbot-box {
-                    width: 90%;
-                    right: 5%;
-                    max-height: 70vh;
-                }
-            }
-        </style>
-
-        <script>
-            document.addEventListener('DOMContentLoaded', function() {
-                const chatbotToggle = document.getElementById('chatbot-toggle');
-                const chatbotBox = document.getElementById('chatbot-box');
-                const chatbotClose = document.getElementById('chatbot-close');
-                const messageInput = document.getElementById('chatbot-input');
-                const sendButton = document.getElementById('chatbot-send');
-                const chatbotMessages = document.getElementById('chatbot-messages');
-                const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
-
-                async function sendMessage() {
-                    const message = messageInput.value.trim();
-                    if (!message) return;
-
-                    try {
-                        // Clear input and disable
-                        messageInput.value = '';
-                        messageInput.disabled = true;
-                        sendButton.disabled = true;
-
-                        // Show user message
-                        appendMessage(message, 'user');
-
-                        // Show typing indicator
-                        const typingIndicator = document.createElement('div');
-                        typingIndicator.className = 'typing-indicator';
-                        typingIndicator.innerHTML = '<span></span><span></span><span></span>';
-                        chatbotMessages.appendChild(typingIndicator);
-                        typingIndicator.classList.add('active');
-
-                        // Make API call
-                        const response = await fetch('/chat', {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json',
-                                'X-CSRF-TOKEN': csrfToken
-                            },
-                            body: JSON.stringify({ message: message })
-                        });
-
-                        // Remove typing indicator
-                        typingIndicator.remove();
-
-                        const data = await response.json();
-                        
-                        if (!response.ok) {
-                            throw new Error(data.message || `Error: ${response.status}`);
-                        }
-
-                        appendMessage(data.message, 'bot');
-
-                    } catch (error) {
-                        console.error('Error:', error);
-                        appendMessage('Sorry, there was an error. Please try again.', 'bot');
-                    } finally {
-                        // Re-enable input and button
-                        messageInput.disabled = false;
-                        sendButton.disabled = false;
-                        messageInput.focus();
-                    }
-                }
-
-                // Event listeners
-                sendButton.addEventListener('click', sendMessage);
-                messageInput.addEventListener('keypress', function(e) {
-                    if (e.key === 'Enter' && !e.shiftKey) {
-                        e.preventDefault();
-                        sendMessage();
-                    }
-                });
-
-                // Toggle chatbot
-                chatbotToggle.addEventListener('click', function() {
-                    chatbotBox.classList.add('active');
-                    chatbotToggle.style.display = 'none';
-                });
-
-                // Close chatbot
-                chatbotClose.addEventListener('click', function() {
-                    chatbotBox.classList.remove('active');
-                    chatbotToggle.style.display = 'flex';
-                });
-
-                function appendMessage(message, sender) {
-                    const messageDiv = document.createElement('div');
-                    messageDiv.className = `message ${sender}-message`;
-                    messageDiv.textContent = message;
-                    chatbotMessages.appendChild(messageDiv);
-                    chatbotMessages.scrollTop = chatbotMessages.scrollHeight;
-                }
-
-                // Add initial welcome message
-                appendMessage("Hello! I'm the SZABIST recruitment assistant. How can I help you with your job application today?", 'bot');
-            });
-        </script>
     </div>
 
-    <!-- Add animate.css for animations -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" defer>
-
     <!-- Scripts -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const loader = document.getElementById('loader-wrapper');
-            const mainContent = document.querySelector('.main-page-wrapper');
-            
-            // Show loader and ensure main content is visible but transparent
-            if (loader && mainContent) {
-                loader.style.display = 'flex';
-                mainContent.style.opacity = '0';
-                mainContent.style.display = 'block';
-            }
+        // Loader
+        $(window).on('load', function() {
+            $('#loader-wrapper').fadeOut('slow');
         });
 
-        window.addEventListener('load', function() {
-            const loader = document.getElementById('loader-wrapper');
-            const mainContent = document.querySelector('.main-page-wrapper');
-            
-            if (loader && mainContent) {
-                // Hide loader and show content
-                setTimeout(function() {
-                    loader.style.opacity = '0';
-                    mainContent.style.opacity = '1';
-                    
-                    setTimeout(function() {
-                        loader.style.display = 'none';
-                    }, 300);
-                }, 500);
+        // Chatbot
+        function toggleChatbot() {
+            document.getElementById('chatbot').classList.toggle('active');
+        }
+
+        function handleKeyPress(event) {
+            if (event.key === 'Enter') {
+                sendMessage();
             }
-        });
-    </script>
-    
-    <!-- Defer non-critical scripts -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
-    <script src="{{ asset('js/theme.js') }}"></script>
-    <script src="{{ asset('js/jquery.appear.js') }}"></script>
-    <script src="{{ asset('js/jquery.countTo.js') }}"></script>
-    <script src="{{ asset('js/wow.min.js') }}"></script>
+        }
 
-    <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        const subscribeForm = document.querySelector('.subscribe-form');
-        
-        if (subscribeForm) {
-            const createAlert = (message, type) => {
-                const alert = document.createElement('div');
-                alert.className = `alert alert-${type}`;
-                alert.textContent = message;
-                return alert;
-            };
+        function appendMessage(message, isUser) {
+            const messagesDiv = document.getElementById('chatMessages');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${isUser ? 'user-message' : 'bot-message'}`;
+            messageDiv.textContent = message;
+            messagesDiv.appendChild(messageDiv);
+            messagesDiv.scrollTop = messagesDiv.scrollHeight;
+        }
 
-            const removeExistingAlerts = () => {
-                subscribeForm.querySelectorAll('.alert').forEach(alert => alert.remove());
-            };
+        function sendMessage() {
+            const input = document.getElementById('userInput');
+            const message = input.value.trim();
+            const button = document.getElementById('sendButton');
+            
+            if (message === '') return;
+            
+            // Disable input and button
+            input.disabled = true;
+            button.disabled = true;
+            
+            // Show user message
+            appendMessage(message, true);
+            input.value = '';
 
-            subscribeForm.addEventListener('submit', async function(e) {
-                e.preventDefault();
-                
-                const emailInput = this.querySelector('input[name="email"]');
-                const submitButton = this.querySelector('button[type="submit"]');
-                const csrfToken = this.querySelector('input[name="_token"]').value;
-                
-                // Remove any existing alerts
-                removeExistingAlerts();
-                
-                // Show loading state
-                submitButton.disabled = true;
-                submitButton.textContent = 'Subscribing...';
-                
-                // Show loading message
-                const loadingAlert = createAlert('Processing your subscription...', 'info');
-                this.appendChild(loadingAlert);
-                
-                try {
-                    const formData = new FormData();
-                    formData.append('email', emailInput.value);
-                    formData.append('_token', csrfToken);
-                    
-                    const response = await fetch(this.action, {
-                        method: 'POST',
-                        body: formData,
-                        headers: {
-                            'X-Requested-With': 'XMLHttpRequest'
-                        }
-                    });
-                    
-                    // Remove loading message
-                    loadingAlert.remove();
-                    
-                    if (response.redirected) {
-                        window.location.href = response.url;
-                        return;
-                    }
-                    
-                    const data = await response.json();
-                    
-                    if (response.ok) {
-                        // Show success message
-                        const successAlert = createAlert(data.message || 'Successfully subscribed!', 'success');
-                        this.appendChild(successAlert);
-                        
-                        // Clear the input
-                        emailInput.value = '';
-                    } else {
-                        throw new Error(data.message || 'Subscription failed');
-                    }
-                } catch (error) {
-                    // Show error message
-                    const errorAlert = createAlert(error.message || 'Something went wrong. Please try again.', 'danger');
-                    this.appendChild(errorAlert);
-                } finally {
-                    submitButton.disabled = false;
-                    submitButton.textContent = 'Subscribe';
-                    
-                    // Auto-hide alerts after 3 seconds
-                    const alerts = this.querySelectorAll('.alert');
-                    alerts.forEach(function(alert) {
-                        setTimeout(function() {
-                            alert.style.transition = 'opacity 0.5s ease';
-                            alert.style.opacity = '0';
-                            setTimeout(function() {
-                                alert.remove();
-                            }, 500);
-                        }, 3000);
-                    });
-                }
+            // Send to server
+            fetch('/chatbot', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                },
+                body: JSON.stringify({ message: message })
+            })
+            .then(response => response.json())
+            .then(data => {
+                appendMessage(data.message, false);
+            })
+            .catch(error => {
+                appendMessage("I'm sorry, I'm having trouble connecting right now. Please try again.", false);
+            })
+            .finally(() => {
+                // Re-enable input and button
+                input.disabled = false;
+                button.disabled = false;
+                input.focus();
             });
         }
-    });
     </script>
 </body>
 </html>
