@@ -364,36 +364,20 @@ class HrController extends Controller
     public function manageJobs()
     {
         try {
-            // Get job requests that have been approved by the dean but not yet posted
-            $pendingJobs = JobRequest::with('department', 'hod')
-                ->where('status', 'Approved by Dean')
-                ->orderBy('approved_by_dean_at', 'desc')
-                ->get();
-
-            // Ensure approved_by_dean_at is a Carbon instance
-            $pendingJobs->each(function($job) {
-                if ($job->approved_by_dean_at && is_string($job->approved_by_dean_at)) {
-                    $job->approved_by_dean_at = \Carbon\Carbon::parse($job->approved_by_dean_at);
-                }
-            });
-
-            // Get already posted jobs
-            $postedJobs = JobPosting::with(['jobRequest.department'])
-                ->orderBy('posted_at', 'desc')
+            // Get all job postings with their related data
+            $jobs = JobPosting::with(['jobRequest.department'])
                 ->orderBy('created_at', 'desc')
                 ->get();
-
-            // Ensure created_at is a Carbon instance
-            $postedJobs->each(function($job) {
-                if ($job->created_at && is_string($job->created_at)) {
-                    $job->created_at = \Carbon\Carbon::parse($job->created_at);
-                }
-            });
-
-            return view('hr.manage-jobs', compact('pendingJobs', 'postedJobs'));
+            
+            return view('hr.manage-jobs', compact('jobs'));
+            
         } catch (\Exception $e) {
-            \Log::error('Error in manageJobs: ' . $e->getMessage());
-            return back()->with('error', 'Error loading jobs: ' . $e->getMessage());
+            \Log::error('Error in manage jobs view:', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            
+            return back()->with('error', 'Error loading jobs. Please try again.');
         }
     }
 
