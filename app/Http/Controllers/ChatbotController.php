@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use Orhanerday\OpenAi\OpenAi;
+use OpenAI\Laravel\Facades\OpenAI;
 
 class ChatbotController extends Controller
 {
@@ -14,34 +14,22 @@ class ChatbotController extends Controller
                 'message' => 'required|string'
             ]);
 
-            $open_ai = new OpenAi(env('OPENAI_API_KEY'));
-
-            $result = $open_ai->chat([
+            $response = OpenAI::chat()->create([
                 'model' => 'gpt-3.5-turbo',
                 'messages' => [
-                    [
-                        'role' => 'user',
-                        'content' => $validated['message']
-                    ]
-                ],
-                'temperature' => 0.7,
-                'max_tokens' => 150
+                    ['role' => 'user', 'content' => $validated['message']]
+                ]
             ]);
 
-            $response = json_decode($result, true);
-
-            if (isset($response['error'])) {
-                throw new \Exception($response['error']['message'] ?? 'OpenAI API error');
-            }
-
             return response()->json([
-                'message' => $response['choices'][0]['message']['content']
+                'message' => $response->choices[0]->message->content
             ]);
 
         } catch (\Exception $e) {
+            \Log::error('ChatBot Error: ' . $e->getMessage());
             return response()->json([
                 'error' => true,
-                'message' => $e->getMessage()
+                'message' => 'An error occurred. Please try again.'
             ], 500);
         }
     }
