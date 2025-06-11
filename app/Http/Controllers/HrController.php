@@ -450,13 +450,26 @@ class HrController extends Controller
     {
         try {
             $jobPosting = JobPosting::findOrFail($id);
-            $jobPosting->status = 'Closed';
-            $jobPosting->save();
-
+            
+            // Update job status to closed
+            $jobPosting->update([
+                'status' => 'Closed'
+            ]);
+            
+            \Log::info('Job posting closed successfully', [
+                'job_id' => $id,
+                'title' => $jobPosting->title
+            ]);
+            
             return redirect()->back()->with('success', 'Job posting has been closed successfully.');
+            
         } catch (\Exception $e) {
-            \Log::error('Error closing job posting: ' . $e->getMessage());
-            return redirect()->back()->with('error', 'Error closing job posting.');
+            \Log::error('Error closing job posting:', [
+                'job_id' => $id,
+                'error' => $e->getMessage()
+            ]);
+            
+            return redirect()->back()->with('error', 'Failed to close job posting. Please try again.');
         }
     }
 
