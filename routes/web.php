@@ -40,7 +40,7 @@ Route::get('/', function () {
 })->name('home');
 
 // Chatbot route
-Route::post('/chatbot', [ChatbotController::class, 'sendMessage'])->name('chatbot.send');
+Route::post('/chatbot', [ChatbotController::class, 'chat'])->name('chatbot.chat');
 
 // Job Routes
 Route::prefix('jobs')->name('jobs.')->group(function () {
