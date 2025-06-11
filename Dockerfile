@@ -35,13 +35,17 @@ WORKDIR /var/www/html
 # Copy the application
 COPY . .
 
-# Create storage structure with full permissions
-RUN mkdir -p /var/www/html/storage/framework/sessions \
-    && mkdir -p /var/www/html/storage/framework/views \
-    && mkdir -p /var/www/html/storage/framework/cache \
-    && mkdir -p /var/www/html/storage/logs \
-    && chmod -R 777 /var/www/html/storage \
-    && chmod -R 777 /var/www/html/bootstrap/cache
+# Create storage structure and set permissions
+RUN mkdir -p storage/framework/sessions \
+    && mkdir -p storage/framework/views \
+    && mkdir -p storage/framework/cache \
+    && mkdir -p storage/logs \
+    && mkdir -p bootstrap/cache \
+    && chown -R www-data:www-data storage \
+    && chown -R www-data:www-data bootstrap/cache \
+    && chmod -R 775 storage \
+    && chmod -R 775 bootstrap/cache \
+    && chmod -R 775 /var/www/html/storage/logs
 
 # Install dependencies
 RUN composer install --no-dev --optimize-autoloader
@@ -58,6 +62,8 @@ php artisan config:clear\n\
 php artisan cache:clear\n\
 php artisan migrate:fresh --force\n\
 php artisan db:seed --force\n\
+chown -R www-data:www-data /var/www/html/storage\n\
+chmod -R 775 /var/www/html/storage\n\
 apache2-foreground' > /usr/local/bin/start.sh \
     && chmod +x /usr/local/bin/start.sh
 
