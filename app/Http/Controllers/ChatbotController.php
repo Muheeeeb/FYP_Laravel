@@ -11,40 +11,16 @@ class ChatbotController extends Controller
     public function chat(Request $request)
     {
         try {
-            if (!env('OPENAI_API_KEY')) {
-                throw new Exception('OpenAI API key not found');
-            }
-
-            $response = Http::withHeaders([
-                'Authorization' => 'Bearer ' . env('OPENAI_API_KEY'),
-                'Content-Type' => 'application/json',
-                'Accept' => 'application/json'
-            ])->timeout(30)->post('https://api.openai.com/v1/chat/completions', [
-                'model' => 'gpt-3.5-turbo',
-                'messages' => [
-                    ['role' => 'system', 'content' => 'You are a SZABIST recruitment assistant. Be concise.'],
-                    ['role' => 'user', 'content' => $request->input('message')]
-                ],
-                'max_tokens' => 100
+            // Return a test response to check if basic communication works
+            return response()->json([
+                'message' => 'This is a test response. If you see this, the connection is working.'
             ]);
 
-            if ($response->successful()) {
-                return response()->json([
-                    'message' => $response->json('choices.0.message.content')
-                ])->header('Access-Control-Allow-Origin', '*')
-                  ->header('Access-Control-Allow-Methods', 'POST, OPTIONS')
-                  ->header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-            }
-
-            throw new Exception($response->body());
-
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             return response()->json([
-                'message' => 'Service temporarily unavailable. Please try again.',
+                'message' => 'Error occurred',
                 'error' => $e->getMessage()
-            ], 500)->header('Access-Control-Allow-Origin', '*')
-                  ->header('Access-Control-Allow-Methods', 'POST, OPTIONS')
-                  ->header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+            ], 500);
         }
     }
 }
