@@ -359,22 +359,26 @@
         </footer>
 
         <!-- Chatbot -->
-        <button class="chatbot-toggle" onclick="toggleChatbot()">
-            <i class="fas fa-comments"></i>
-        </button>
-
-        <div class="chatbot-container" id="chatbot">
-            <div class="chatbot-header">
-                SZABIST Career Assistant
+        <div class="chatbot-container">
+            <div class="chatbot-toggle" id="chatbot-toggle">
+                <i class="fas fa-comments"></i>
             </div>
-            <div class="chatbot-messages" id="chatMessages">
-                <div class="message bot-message">
-                    Hello! How can I help you with your job application today?
+            <div class="chatbot-box" id="chatbot-box">
+                <div class="chatbot-header">
+                    <h5 class="chatbot-title">SZABIST Recruitment Assistant</h5>
+                    <button id="chatbot-close" aria-label="Close chatbot">
+                        <i class="fas fa-times"></i>
+                    </button>
                 </div>
-            </div>
-            <div class="chatbot-input">
-                <input type="text" id="userInput" placeholder="Type your message..." onkeypress="handleKeyPress(event)">
-                <button onclick="sendMessage()" id="sendButton">Send</button>
+                <div class="chatbot-messages" id="chatbot-messages">
+                    <!-- Messages will be added here by JavaScript -->
+                </div>
+                <div class="chatbot-input-container">
+                    <input type="text" id="chatbot-input" class="chatbot-input" placeholder="Type your message...">
+                    <button id="chatbot-send" class="chatbot-send-btn">
+                        <i class="fas fa-paper-plane"></i>
+                    </button>
+                </div>
             </div>
         </div>
     </div>
@@ -387,64 +391,99 @@
             $('#loader-wrapper').fadeOut('slow');
         });
 
-        // Chatbot
-        function toggleChatbot() {
-            document.getElementById('chatbot').classList.toggle('active');
-        }
+        document.addEventListener('DOMContentLoaded', function() {
+            const chatbotToggle = document.getElementById('chatbot-toggle');
+            const chatbotBox = document.getElementById('chatbot-box');
+            const chatbotClose = document.getElementById('chatbot-close');
+            const messageInput = document.getElementById('chatbot-input');
+            const sendButton = document.getElementById('chatbot-send');
+            const chatbotMessages = document.getElementById('chatbot-messages');
+            const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
 
-        function handleKeyPress(event) {
-            if (event.key === 'Enter') {
-                sendMessage();
+            async function sendMessage() {
+                const message = messageInput.value.trim();
+                if (!message) return;
+
+                try {
+                    // Clear input and disable
+                    messageInput.value = '';
+                    messageInput.disabled = true;
+                    sendButton.disabled = true;
+                    
+                    // Show user message
+                    appendMessage(message, 'user');
+
+                    // Show typing indicator
+                    const typingIndicator = document.createElement('div');
+                    typingIndicator.className = 'typing-indicator';
+                    typingIndicator.innerHTML = '<span></span><span></span><span></span>';
+                    chatbotMessages.appendChild(typingIndicator);
+                    typingIndicator.classList.add('active');
+
+                    // Make API call
+                    const response = await fetch('/chatbot', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': csrfToken
+                        },
+                        body: JSON.stringify({ message: message })
+                    });
+
+                    // Remove typing indicator
+                    typingIndicator.remove();
+
+                    const data = await response.json();
+                    
+                    if (!response.ok) {
+                        throw new Error(data.message || `Error: ${response.status}`);
+                    }
+
+                    appendMessage(data.message, 'bot');
+
+                } catch (error) {
+                    console.error('Error:', error);
+                    appendMessage('Sorry, there was an error. Please try again.', 'bot');
+                } finally {
+                    // Re-enable input and button
+                    messageInput.disabled = false;
+                    sendButton.disabled = false;
+                    messageInput.focus();
+                }
             }
-        }
 
-        function appendMessage(message, isUser) {
-            const messagesDiv = document.getElementById('chatMessages');
-            const messageDiv = document.createElement('div');
-            messageDiv.className = `message ${isUser ? 'user-message' : 'bot-message'}`;
-            messageDiv.textContent = message;
-            messagesDiv.appendChild(messageDiv);
-            messagesDiv.scrollTop = messagesDiv.scrollHeight;
-        }
-
-        function sendMessage() {
-            const input = document.getElementById('userInput');
-            const message = input.value.trim();
-            const button = document.getElementById('sendButton');
-            
-            if (message === '') return;
-            
-            // Disable input and button
-            input.disabled = true;
-            button.disabled = true;
-            
-            // Show user message
-            appendMessage(message, true);
-            input.value = '';
-
-            // Send to server
-            fetch('/chatbot', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
-                },
-                body: JSON.stringify({ message: message })
-            })
-            .then(response => response.json())
-            .then(data => {
-                appendMessage(data.message, false);
-            })
-            .catch(error => {
-                appendMessage("I'm sorry, I'm having trouble connecting right now. Please try again.", false);
-            })
-            .finally(() => {
-                // Re-enable input and button
-                input.disabled = false;
-                button.disabled = false;
-                input.focus();
+            // Event listeners
+            sendButton.addEventListener('click', sendMessage);
+            messageInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    sendMessage();
+                }
             });
-        }
+
+            // Toggle chatbot
+            chatbotToggle.addEventListener('click', function() {
+                chatbotBox.classList.add('active');
+                chatbotToggle.style.display = 'none';
+            });
+
+            // Close chatbot
+            chatbotClose.addEventListener('click', function() {
+                chatbotBox.classList.remove('active');
+                chatbotToggle.style.display = 'flex';
+            });
+
+            function appendMessage(message, sender) {
+                const messageDiv = document.createElement('div');
+                messageDiv.className = `message ${sender}-message`;
+                messageDiv.textContent = message;
+                chatbotMessages.appendChild(messageDiv);
+                chatbotMessages.scrollTop = chatbotMessages.scrollHeight;
+            }
+
+            // Add initial welcome message
+            appendMessage("Hello! I'm the SZABIST recruitment assistant. How can I help you with your job application today?", 'bot');
+        });
     </script>
 </body>
 </html>

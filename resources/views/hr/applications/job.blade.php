@@ -247,35 +247,49 @@ $(document).ready(function() {
         const select = $(this);
 
         $.ajax({
-            url: /hr/applications/${applicationId}/status,
-            method: 'POST',
+            url: `/hr/applications/${applicationId}/status`,
+            method: 'PUT',
             data: {
-                status: newStatus
+                status: newStatus,
+                _token: '{{ csrf_token() }}'
             },
             success: function(response) {
                 if (response.success) {
-                    // Update the badge color
-                    const badge = select.closest('tr').find('.badge');
-                    badge.removeClass('bg-primary bg-success bg-danger');
-                    if (newStatus === 'pending') {
-                        badge.addClass('bg-primary');
-                    } else if (newStatus === 'shortlisted') {
-                        badge.addClass('bg-success');
-                    } else {
-                        badge.addClass('bg-danger');
-                    }
-                    badge.text(newStatus.charAt(0).toUpperCase() + newStatus.slice(1));
-                    
-                    // Show success message
-                    alert('Status updated successfully');
+                    toastr.success('Status updated successfully');
+                    // Update the status badge
+                    const statusBadge = select.closest('tr').find('.status-badge');
+                    const statusClass = getStatusClass(newStatus);
+                    statusBadge.removeClass().addClass(`badge bg-${statusClass}`).text(newStatus);
+                } else {
+                    toastr.error('Failed to update status');
+                    select.val(select.data('original-status'));
                 }
             },
             error: function(xhr) {
-                alert('Error updating status: ' + xhr.responseJSON.message);
-                // Reset the select to its previous value
-                select.val(select.find('option[selected]').val());
+                toastr.error('An error occurred while updating status');
+                select.val(select.data('original-status'));
+                console.error('Status update error:', xhr.responseText);
             }
         });
+    });
+
+    // Helper function to get status badge class
+    function getStatusClass(status) {
+        switch(status.toLowerCase()) {
+            case 'rejected': return 'danger';
+            case 'interview scheduled': return 'primary';
+            case 'pending': return 'warning';
+            case 'hired': return 'success';
+            case 'applied': return 'info';
+            default: return 'secondary';
+        }
+    }
+
+    // Handle filter form submission
+    $('#filterForm').on('submit', function(e) {
+        e.preventDefault();
+        const formData = $(this).serialize();
+        window.location.href = `${window.location.pathname}?${formData}`;
     });
 });
 </script>

@@ -1,55 +1,18 @@
-[2025-06-10 22:45:13,938] INFO: Successfully authenticated with OpenAI API
-[2025-06-10 22:45:16,613] INFO: Successfully authenticated with OpenAI API
-[2025-06-10 23:02:53,387] INFO: Received resume evaluation request
-[2025-06-10 23:02:53,406] INFO: Form data: ImmutableMultiDict([('job_description', 'any\n\nRequirements:\nany')])
-[2025-06-10 23:02:53,406] INFO: Files: ['SDaCJIfmQlX0NJxWLgqeYl2i7BbARIncfW09Iszn.pdf']
-[2025-06-10 23:02:53,417] INFO: Job Description: any
+[2025-06-11 14:01:15,348] INFO: Successfully authenticated with OpenAI API
+[2025-06-11 14:01:18,923] INFO: Successfully authenticated with OpenAI API
+[2025-06-11 14:08:47,871] INFO: Received resume evaluation request
+[2025-06-11 14:08:47,871] INFO: Form data: ImmutableMultiDict([('job_description', 'Professor required for teaching machine learning course.\n\nRequirements:\nBachelors in AI, Datascience, CS , SE\r\nStrong skill set in C++ And python')])
+[2025-06-11 14:08:47,871] INFO: Files: ['2oWPGNLmo5s4Vmow6hDIb9kcuber4FwR1wYsruFZ.pdf']
+[2025-06-11 14:08:47,871] INFO: Job Description: Professor required for teaching machine learning course.
 
 Requirements:
-any...
-[2025-06-10 23:02:53,423] INFO: Processing resume: SDaCJIfmQlX0NJxWLgqeYl2i7BbARIncfW09Iszn.pdf
-[2025-06-10 23:02:53,427] INFO: Extracting text from PDF: SDaCJIfmQlX0NJxWLgqeYl2i7BbARIncfW09Iszn.pdf
-[2025-06-10 23:03:03,413] INFO: Successfully extracted text from SDaCJIfmQlX0NJxWLgqeYl2i7BbARIncfW09Iszn.pdf
-[2025-06-10 23:03:03,425] INFO: Attempt 1 to get OpenAI response
-[2025-06-10 23:04:20,087] INFO: Successfully received and validated OpenAI response
-[2025-06-10 23:04:20,090] INFO: AI Response for SDaCJIfmQlX0NJxWLgqeYl2i7BbARIncfW09Iszn.pdf: {'JD Match': '0%', 'MissingKeywords': ['Specific Job Requirements'], 'Profile Summary': "Muheeb Ahmed has extensive experience in e-commerce management, customer service, and transcription, with a focus on account handling and order processing. He possesses strong interpersonal skills and is dependable and enthusiastic. Proficient in Python and C++, Ahmed is currently pursuing a Bachelors in Artificial Intelligence. Fluent in English and Urdu, he has demonstrated his ability to work in diverse teams. However, without specific job requirements, it's impossible to accurately assess how well his skills and experience match the job description."}
-[2025-06-10 23:04:20,102] INFO: Processed result for SDaCJIfmQlX0NJxWLgqeYl2i7BbARIncfW09Iszn.pdf: {'filename': 'SDaCJIfmQlX0NJxWLgqeYl2i7BbARIncfW09Iszn.pdf', 'match_percentage': 0.0, 'missing_keywords': ['Specific Job Requirements'], 'profile_summary': "Muheeb Ahmed has extensive experience in e-commerce management, customer service, and transcription, with a focus on account handling and order processing. He possesses strong interpersonal skills and is dependable and enthusiastic. Proficient in Python and C++, Ahmed is currently pursuing a Bachelors in Artificial Intelligence. Fluent in English and Urdu, he has demonstrated his ability to work in diverse teams. However, without specific job requirements, it's impossible to accurately assess how well his skills and experience match the job description."}
-[2025-06-10 23:04:20,106] INFO: Successfully processed 1 resumes
-[2025-06-10 23:04:20,111] INFO: Final response data: [{'filename': 'SDaCJIfmQlX0NJxWLgqeYl2i7BbARIncfW09Iszn.pdf', 'match_percentage': 0.0, 'missing_keywords': ['Specific Job Requirements'], 'profile_summary': "Muheeb Ahmed has extensive experience in e-commerce management, customer service, and transcription, with a focus on account handling and order processing. He possesses strong interpersonal skills and is dependable and enthusiastic. Proficient in Python and C++, Ahmed is currently pursuing a Bachelors in Artificial Intelligence. Fluent in English and Urdu, he has demonstrated his ability to work in diverse teams. However, without specific job requirements, it's impossible to accurately assess how well his skills and experience match the job description."}]
-[2025-06-10 23:04:26,614] INFO: Received resume evaluation request
-[2025-06-10 23:04:26,629] INFO: Form data: ImmutableMultiDict([('job_description', 'any\n\nRequirements:\nany')])
-[2025-06-10 23:04:26,634] INFO: Files: ['3vla7aHQjpzXyj0NYktrDiMebw1FSK1EhE4Tbyds.pdf']
-[2025-06-10 23:04:26,637] INFO: Job Description: any
-
-Requirements:
-any...
-[2025-06-10 23:04:26,641] INFO: Processing resume: 3vla7aHQjpzXyj0NYktrDiMebw1FSK1EhE4Tbyds.pdf
-[2025-06-10 23:04:26,646] INFO: Extracting text from PDF: 3vla7aHQjpzXyj0NYktrDiMebw1FSK1EhE4Tbyds.pdf
-[2025-06-10 23:04:36,650] INFO: Successfully extracted text from 3vla7aHQjpzXyj0NYktrDiMebw1FSK1EhE4Tbyds.pdf
-[2025-06-10 23:04:36,656] INFO: Attempt 1 to get OpenAI response
-[2025-06-10 23:04:42,341] INFO: Successfully received and validated OpenAI response
-[2025-06-10 23:04:42,349] INFO: AI Response for 3vla7aHQjpzXyj0NYktrDiMebw1FSK1EhE4Tbyds.pdf: {'JD Match': 'Not Applicable', 'MissingKeywords': 'Not Applicable', 'Profile Summary': "Muheeb Ahmed is a professional with experience in e-commerce management and transcription. He has handled eBay, Amazon, and Onbuy accounts and has a strong background in customer service. He has skills in Python and C++, and is also experienced in debugging. He is currently pursuing a Bachelor's degree in Artificial Intelligence. He is a team player, dependable, and has strong interpersonal skills. He has full professional proficiency in English and Urdu."}
-[2025-06-10 23:04:42,392] WARNING: Invalid match percentage for 3vla7aHQjpzXyj0NYktrDiMebw1FSK1EhE4Tbyds.pdf
-[2025-06-10 23:04:42,392] INFO: Processed result for 3vla7aHQjpzXyj0NYktrDiMebw1FSK1EhE4Tbyds.pdf: {'filename': '3vla7aHQjpzXyj0NYktrDiMebw1FSK1EhE4Tbyds.pdf', 'match_percentage': 0.0, 'missing_keywords': 'Not Applicable', 'profile_summary': "Muheeb Ahmed is a professional with experience in e-commerce management and transcription. He has handled eBay, Amazon, and Onbuy accounts and has a strong background in customer service. He has skills in Python and C++, and is also experienced in debugging. He is currently pursuing a Bachelor's degree in Artificial Intelligence. He is a team player, dependable, and has strong interpersonal skills. He has full professional proficiency in English and Urdu."}
-[2025-06-10 23:04:42,418] INFO: Successfully processed 1 resumes
-[2025-06-10 23:04:42,425] INFO: Final response data: [{'filename': '3vla7aHQjpzXyj0NYktrDiMebw1FSK1EhE4Tbyds.pdf', 'match_percentage': 0.0, 'missing_keywords': 'Not Applicable', 'profile_summary': "Muheeb Ahmed is a professional with experience in e-commerce management and transcription. He has handled eBay, Amazon, and Onbuy accounts and has a strong background in customer service. He has skills in Python and C++, and is also experienced in debugging. He is currently pursuing a Bachelor's degree in Artificial Intelligence. He is a team player, dependable, and has strong interpersonal skills. He has full professional proficiency in English and Urdu."}]
-[2025-06-10 23:06:55,939] INFO: Received resume evaluation request
-[2025-06-10 23:06:55,941] INFO: Form data: ImmutableMultiDict([('job_description', 'any\n\nRequirements:\nany')])
-[2025-06-10 23:06:55,941] INFO: Files: ['QIga1vPp0ZWNTli1CcsuIbzWrkag86SS6MfAw4QU.pdf']
-[2025-06-10 23:06:55,941] INFO: Job Description: any
-
-Requirements:
-any...
-[2025-06-10 23:06:55,941] INFO: Processing resume: QIga1vPp0ZWNTli1CcsuIbzWrkag86SS6MfAw4QU.pdf
-[2025-06-10 23:06:55,947] INFO: Extracting text from PDF: QIga1vPp0ZWNTli1CcsuIbzWrkag86SS6MfAw4QU.pdf
-[2025-06-10 23:06:57,628] INFO: Successfully extracted text from QIga1vPp0ZWNTli1CcsuIbzWrkag86SS6MfAw4QU.pdf
-[2025-06-10 23:06:57,629] INFO: Attempt 1 to get OpenAI response
-[2025-06-10 23:07:03,177] INFO: Successfully received and validated OpenAI response
-[2025-06-10 23:07:03,177] INFO: AI Response for QIga1vPp0ZWNTli1CcsuIbzWrkag86SS6MfAw4QU.pdf: {'JD Match': '0%', 'MissingKeywords': ['any'], 'Profile Summary': "Muheeb Ahmed is an individual with a diverse set of skills and experiences. He has worked as an E-Commerce Manager and a Customer Service Representative / Transcriber, demonstrating skills in order processing, account health maintenance, data transcribing, and transcription review and editing. He is also pursuing a Bachelors in Artificial Intelligence and showcases skills in Python and C++. His interpersonal skills, dependability, and team-player attitude are also notable. However, without specific job requirements, it's hard to determine how well his skills and experiences match a potential job."}
-[2025-06-10 23:07:03,177] INFO: Processed result for QIga1vPp0ZWNTli1CcsuIbzWrkag86SS6MfAw4QU.pdf: {'filename': 'QIga1vPp0ZWNTli1CcsuIbzWrkag86SS6MfAw4QU.pdf', 'match_percentage': 0.0, 'missing_keywords': ['any'], 'profile_summary': "Muheeb Ahmed is an individual with a diverse set of skills and experiences. He has worked as an E-Commerce Manager and a Customer Service Representative / Transcriber, demonstrating skills in order processing, account health maintenance, data transcribing, and transcription review and editing. He is also pursuing a Bachelors in Artificial Intelligence and showcases skills in Python and C++. His interpersonal skills, dependability, and team-player attitude are also notable. However, without specific job requirements, it's hard to determine how well his skills and experiences match a potential job."}
-[2025-06-10 23:07:03,188] INFO: Successfully processed 1 resumes
-[2025-06-10 23:07:03,189] INFO: Final response data: [{'filename': 'QIga1vPp0ZWNTli1CcsuIbzWrkag86SS6MfAw4QU.pdf', 'match_percentage': 0.0, 'missing_keywords': ['any'], 'profile_summary': "Muheeb Ahmed is an individual with a diverse set of skills and experiences. He has worked as an E-Commerce Manager and a Customer Service Representative / Transcriber, demonstrating skills in order processing, account health maintenance, data transcribing, and transcription review and editing. He is also pursuing a Bachelors in Artificial Intelligence and showcases skills in Python and C++. His interpersonal skills, dependability, and team-player attitude are also notable. However, without specific job requirements, it's hard to determine how well his skills and experiences match a potential job."}]
-[2025-06-10 23:12:26,131] INFO: Received resume evaluation request
-[2025-06-10 23:12:26,135] INFO: Form data: ImmutableMultiDict([('job_description', 'any\n\nRequirements:\nany')])
-[2025-06-10 23:12:26,135] INFO: Files: ['SDaCJIfmQlX0NJxWLgqeYl2i7BbARIncfW09Iszn.pdf']
-[2025-06-10 23:12:28,028] INFO: Attempt 1 to get OpenAI response
+Bachelors in AI, Datascience...
+[2025-06-11 14:08:47,871] INFO: Processing resume: 2oWPGNLmo5s4Vmow6hDIb9kcuber4FwR1wYsruFZ.pdf
+[2025-06-11 14:08:47,885] INFO: Extracting text from PDF: 2oWPGNLmo5s4Vmow6hDIb9kcuber4FwR1wYsruFZ.pdf
+[2025-06-11 14:08:49,570] INFO: Successfully extracted text from 2oWPGNLmo5s4Vmow6hDIb9kcuber4FwR1wYsruFZ.pdf
+[2025-06-11 14:08:49,575] INFO: Attempt 1 to get OpenAI response
+[2025-06-11 14:08:58,755] INFO: Successfully received and validated OpenAI response
+[2025-06-11 14:08:58,755] INFO: AI Response for 2oWPGNLmo5s4Vmow6hDIb9kcuber4FwR1wYsruFZ.pdf: {'JD Match': '40%', 'MissingKeywords': ['Machine Learning', 'Teaching Experience'], 'Profile Summary': "Muheeb Ahmed holds a Bachelor's degree in Artificial Intelligence and possesses skills in both Python and C++. However, he lacks experience in teaching and machine learning, which are key requirements for the job description. His professional experience mainly revolves around e-commerce management and transcription services. Additionally, he demonstrates skills in event management and fluency in English and Urdu."}
+[2025-06-11 14:08:58,764] INFO: Processed result for 2oWPGNLmo5s4Vmow6hDIb9kcuber4FwR1wYsruFZ.pdf: {'filename': '2oWPGNLmo5s4Vmow6hDIb9kcuber4FwR1wYsruFZ.pdf', 'match_percentage': 40.0, 'missing_keywords': ['Machine Learning', 'Teaching Experience'], 'profile_summary': "Muheeb Ahmed holds a Bachelor's degree in Artificial Intelligence and possesses skills in both Python and C++. However, he lacks experience in teaching and machine learning, which are key requirements for the job description. His professional experience mainly revolves around e-commerce management and transcription services. Additionally, he demonstrates skills in event management and fluency in English and Urdu."}
+[2025-06-11 14:08:58,765] INFO: Successfully processed 1 resumes
+[2025-06-11 14:08:58,765] INFO: Final response data: [{'filename': '2oWPGNLmo5s4Vmow6hDIb9kcuber4FwR1wYsruFZ.pdf', 'match_percentage': 40.0, 'missing_keywords': ['Machine Learning', 'Teaching Experience'], 'profile_summary': "Muheeb Ahmed holds a Bachelor's degree in Artificial Intelligence and possesses skills in both Python and C++. However, he lacks experience in teaching and machine learning, which are key requirements for the job description. His professional experience mainly revolves around e-commerce management and transcription services. Additionally, he demonstrates skills in event management and fluency in English and Urdu."}]

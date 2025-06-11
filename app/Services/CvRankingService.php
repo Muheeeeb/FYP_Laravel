@@ -11,19 +11,30 @@ use Illuminate\Http\Client\ConnectionException;
 class CvRankingService
 {
     protected $apiUrl = 'http://127.0.0.1:5000/evaluate_resume';
-    protected $timeout = 120; // Increase timeout to 120 seconds
+    protected $timeout = 120; // 120 seconds timeout
 
     public function rankApplications(JobPosting $jobPosting, array $specificApplications = null)
     {
+        \Log::info("Starting CV ranking process for job posting ID: {$jobPosting->id}");
+        
         try {
             // If specific applications are provided, use those; otherwise, get unranked applications
-            $unrankedApplications = JobApplication::where(function($query) use ($jobPosting) {
-                $query->where('job_posting_id', $jobPosting->id)
-                      ->where('is_ranked', false);
-            })->get();
+            $query = JobApplication::where(function($q) use ($jobPosting) {
+                $q->where('job_posting_id', $jobPosting->id)
+                  ->where('is_ranked', false);
+            });
 
-            if (empty($unrankedApplications)) {
-                return;
+            if ($specificApplications) {
+                $query->whereIn('id', $specificApplications);
+            }
+
+            $unrankedApplications = $query->get();
+            
+            \Log::info("Found {$unrankedApplications->count()} unranked applications");
+
+            if ($unrankedApplications->isEmpty()) {
+                \Log::info("No unranked applications found for job posting ID: {$jobPosting->id}");
+                return true;
             }
 
             $files = [];
@@ -31,30 +42,32 @@ class CvRankingService
 
             foreach ($unrankedApplications as $application) {
                 try {
+                    \Log::info("Processing application ID: {$application->id}");
+                    
                     // Get the CV file from storage - check both cv_path and resume_path
                     $cvPath = null;
                     
-                    if ($application->cv_path && file_exists(storage_path('app/public/' . $application->cv_path))) {
+                    if ($application->cv_path && Storage::disk('public')->exists($application->cv_path)) {
                         $cvPath = storage_path('app/public/' . $application->cv_path);
-                    } elseif ($application->resume_path && file_exists(storage_path('app/public/' . $application->resume_path))) {
+                    } elseif ($application->resume_path && Storage::disk('public')->exists($application->resume_path)) {
                         $cvPath = storage_path('app/public/' . $application->resume_path);
                     }
                     
                     if (!$cvPath) {
-                        \Log::error("CV file not found for application ID: {$application->id}");
+                        \Log::warning("CV file not found for application ID: {$application->id}");
                         continue;
                     }
 
                     // Try to open the file with read lock
                     $handle = fopen($cvPath, 'r');
                     if (!$handle) {
-                        \Log::error("Could not open CV file: {$cvPath}");
+                        \Log::error("Could not open CV file: {$cvPath} for application ID: {$application->id}");
                         continue;
                     }
 
                     // Try to acquire a shared lock
                     if (!flock($handle, LOCK_SH | LOCK_NB)) {
-                        \Log::error("File is locked: {$cvPath}");
+                        \Log::warning("File is locked: {$cvPath} for application ID: {$application->id}");
                         fclose($handle);
                         continue;
                     }
@@ -69,25 +82,31 @@ class CvRankingService
                         'handle' => $handle,
                         'filename' => basename($cvPath)
                     ];
+                    
+                    \Log::info("Successfully prepared CV file for application ID: {$application->id}");
                 } catch (\Exception $e) {
-                    \Log::error("Error preparing CV file: {$e->getMessage()}");
+                    \Log::error("Error preparing CV file for application ID: {$application->id}", [
+                        'error' => $e->getMessage(),
+                        'trace' => $e->getTraceAsString()
+                    ]);
                     continue;
                 }
             }
 
             if (empty($files)) {
-                throw new \Exception('No valid CV files found');
+                \Log::warning("No valid CV files found for job posting ID: {$jobPosting->id}");
+                return false;
             }
 
             try {
                 // Prepare the job description
                 $jobDescription = $jobPosting->description . "\n\nRequirements:\n" . $jobPosting->requirements;
                 
-                \Log::info("Making API request to {$this->apiUrl} with job posting ID: {$jobPosting->id}");
-                
-                // Log request details for debugging
-                \Log::info("Job Description length: " . strlen($jobDescription));
-                \Log::info("Number of files being sent: " . count($files));
+                \Log::info("Making API request", [
+                    'job_posting_id' => $jobPosting->id,
+                    'files_count' => count($files),
+                    'description_length' => strlen($jobDescription)
+                ]);
 
                 // Make API request with timeout
                 $response = Http::timeout($this->timeout)
@@ -96,47 +115,20 @@ class CvRankingService
                         'job_description' => $jobDescription
                     ]);
                 
-                \Log::info("API Response Status: " . $response->status());
-                
-                // Check for HTTP errors 
                 if ($response->failed()) {
-                    \Log::error("API request failed with status: " . $response->status());
-                    \Log::error("Response body: " . $response->body());
-                    throw new \Exception('Failed to get ranking from API: HTTP ' . $response->status() . ' - ' . $response->body());
+                    throw new \Exception("API request failed with status: {$response->status()} - {$response->body()}");
                 }
 
-                // Try to parse JSON response
-                try {
-                    $results = $response->json();
-                    
-                    if ($results === null) {
-                        \Log::error("Failed to parse JSON response: " . $response->body());
-                        throw new \Exception('Invalid JSON response from API');
-                    }
-                    
-                    \Log::info("Successfully received API response: " . json_encode($results));
-                } catch (\Exception $e) {
-                    \Log::error("JSON parse error: " . $e->getMessage());
-                    \Log::error("Raw response body: " . $response->body());
-                    throw new \Exception('Failed to parse API response: ' . $e->getMessage());
-                }
-
+                $results = $response->json();
+                
                 if (!is_array($results)) {
-                    \Log::error("API returned non-array result: " . gettype($results));
-                    throw new \Exception('Invalid response format from API: expected array, got ' . gettype($results));
+                    throw new \Exception('Invalid response format from API: expected array');
                 }
 
-                // Update applications with ranking results
+                $successCount = 0;
                 foreach ($results as $result) {
-                    // Check if $result is an array before attempting to access its keys
-                    if (!is_array($result)) {
-                        \Log::error("Invalid result format: " . json_encode($result));
-                        continue;
-                    }
-
-                    // Check if 'filename' key exists in the result
-                    if (!isset($result['filename'])) {
-                        \Log::error("Missing filename in result: " . json_encode($result));
+                    if (!is_array($result) || !isset($result['filename'])) {
+                        \Log::warning("Invalid result format", ['result' => $result]);
                         continue;
                     }
 
@@ -144,47 +136,56 @@ class CvRankingService
                         return $item['filename'] === $result['filename'];
                     });
 
-                    if ($validApp) {
-                        if (isset($result['error'])) {
-                            \Log::error("Error ranking CV {$result['filename']}: {$result['error']}");
-                            continue;
-                        }
+                    if (!$validApp) {
+                        \Log::warning("No matching application found for result", ['filename' => $result['filename']]);
+                        continue;
+                    }
 
-                        if (isset($result['analysis']) && is_array($result['analysis'])) {
-                            try {
-                                $matchPercentage = isset($result['analysis']['match_percentage']) ? 
-                                    $result['analysis']['match_percentage'] : 0;
-                                
-                                $missingKeywords = isset($result['analysis']['missing_keywords']) && 
-                                    is_array($result['analysis']['missing_keywords']) ? 
-                                    json_encode($result['analysis']['missing_keywords']) : json_encode([]);
-                                
-                                $profileSummary = isset($result['analysis']['profile_summary']) ? 
-                                    $result['analysis']['profile_summary'] : '';
-                                
-                                $validApp['application']->update([
-                                    'match_percentage' => $matchPercentage,
-                                    'missing_keywords' => $missingKeywords,
-                                    'profile_summary' => $profileSummary,
-                                    'is_ranked' => true
-                                ]);
-                                
-                                \Log::info("Successfully ranked application ID: {$validApp['application']->id}");
-                            } catch (\Exception $e) {
-                                \Log::error("Error updating application: {$e->getMessage()}");
-                                \Log::error("Stack trace: {$e->getTraceAsString()}");
-                            }
-                        } else {
-                            \Log::error("Missing or invalid analysis in result: " . json_encode($result));
-                        }
+                    if (isset($result['error'])) {
+                        \Log::error("Error ranking CV", [
+                            'filename' => $result['filename'],
+                            'error' => $result['error']
+                        ]);
+                        continue;
+                    }
+
+                    if (!isset($result['analysis']) || !is_array($result['analysis'])) {
+                        \Log::warning("Missing or invalid analysis", ['result' => $result]);
+                        continue;
+                    }
+
+                    try {
+                        $validApp['application']->update([
+                            'match_percentage' => $result['analysis']['match_percentage'] ?? 0,
+                            'missing_keywords' => json_encode($result['analysis']['missing_keywords'] ?? []),
+                            'profile_summary' => $result['analysis']['profile_summary'] ?? '',
+                            'is_ranked' => true
+                        ]);
+                        
+                        $successCount++;
+                        \Log::info("Successfully ranked application", [
+                            'application_id' => $validApp['application']->id,
+                            'match_percentage' => $result['analysis']['match_percentage'] ?? 0
+                        ]);
+                    } catch (\Exception $e) {
+                        \Log::error("Error updating application", [
+                            'application_id' => $validApp['application']->id,
+                            'error' => $e->getMessage()
+                        ]);
                     }
                 }
 
+                \Log::info("Ranking process completed", [
+                    'job_posting_id' => $jobPosting->id,
+                    'total_processed' => count($results),
+                    'success_count' => $successCount
+                ]);
+
                 return true;
             } catch (ConnectionException $e) {
-                throw new \Exception('Flask API is not running or timed out: ' . $e->getMessage());
+                throw new \Exception("Flask API connection error: {$e->getMessage()}");
             } finally {
-                // Clean up: close all file handles and release locks
+                // Clean up file handles
                 foreach ($validApplications as $validApp) {
                     if (isset($validApp['handle']) && is_resource($validApp['handle'])) {
                         flock($validApp['handle'], LOCK_UN);
@@ -193,7 +194,11 @@ class CvRankingService
                 }
             }
         } catch (\Exception $e) {
-            \Log::error('CV Ranking Error: ' . $e->getMessage());
+            \Log::error("CV Ranking Error", [
+                'job_posting_id' => $jobPosting->id,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
             return false;
         }
     }

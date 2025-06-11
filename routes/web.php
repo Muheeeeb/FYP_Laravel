@@ -39,6 +39,9 @@ Route::get('/', function () {
     return view('home');
 })->name('home');
 
+// Chatbot route
+Route::post('/chatbot', [ChatbotController::class, 'sendMessage'])->name('chatbot.send');
+
 // Job Routes
 Route::prefix('jobs')->name('jobs.')->group(function () {
     Route::get('/', [JobListingController::class, 'index'])->name('index');

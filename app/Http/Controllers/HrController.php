@@ -64,11 +64,22 @@ class HrController extends Controller
     public function applications()
     {
         try {
-            $applications = JobApplication::with(['jobPosting.jobRequest.department'])
-                ->orderBy('created_at', 'desc')
-                ->paginate(10);
+            $query = JobApplication::with(['jobPosting.jobRequest.department'])
+                ->when(request('status'), function($q) {
+                    return $q->where('status', request('status'));
+                })
+                ->when(request('position'), function($q) {
+                    return $q->where('job_id', request('position'));
+                });
 
-            return view('hr.applications', compact('applications'));
+            $applications = $query->orderByRaw('CASE WHEN is_ranked = 0 THEN 1 ELSE 0 END')
+                ->orderByDesc('match_percentage')
+                ->orderBy('created_at', 'desc')
+                ->get();
+
+            $positions = JobPosting::select('id', 'title')->distinct()->get();
+
+            return view('hr.applications.index', compact('applications', 'positions'));
         } catch (\Exception $e) {
             \Log::error('Error loading applications: ' . $e->getMessage());
             return back()->with('error', 'Error loading applications: ' . $e->getMessage());

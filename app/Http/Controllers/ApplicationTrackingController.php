@@ -4,11 +4,28 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\JobApplication;
+use Illuminate\Support\Facades\Log;
 
 class ApplicationTrackingController extends Controller
 {
     public function showTrackingForm()
     {
+        // Test database connection
+        try {
+            $pdo = \DB::connection()->getPdo();
+            Log::info('Database connection successful', [
+                'database' => config('database.connections.mysql.database'),
+                'host' => config('database.connections.mysql.host')
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Database connection failed', [
+                'error' => $e->getMessage(),
+                'database' => config('database.connections.mysql.database'),
+                'host' => config('database.connections.mysql.host'),
+                'port' => config('database.connections.mysql.port')
+            ]);
+        }
+
         return view('jobs.track-application');
     }
 
@@ -17,10 +34,18 @@ class ApplicationTrackingController extends Controller
         try {
             // First check database connection
             try {
-                \DB::connection()->getPdo();
+                $pdo = \DB::connection()->getPdo();
+                Log::info('Database connection successful in trackApplication', [
+                    'database' => config('database.connections.mysql.database'),
+                    'host' => config('database.connections.mysql.host'),
+                    'connection' => get_class($pdo)
+                ]);
             } catch (\Exception $e) {
-                \Log::error('Database connection failed', [
-                    'error' => $e->getMessage()
+                Log::error('Database connection failed in trackApplication', [
+                    'error' => $e->getMessage(),
+                    'database' => config('database.connections.mysql.database'),
+                    'host' => config('database.connections.mysql.host'),
+                    'port' => config('database.connections.mysql.port')
                 ]);
                 return back()->with('error', 'Unable to connect to the database. Please try again later.');
             }
