@@ -191,68 +191,35 @@ class ChatbotController extends Controller
 
     public function sendMessage(Request $request)
     {
-        $request->headers->set('Accept', 'application/json');
-
         try {
-            if (!$request->has('message')) {
-                \Log::error('ChatBot Error: No message provided');
-                throw new \Exception('Message is required');
+            // Debug logging for API key
+            $apiKey = env('OPENAI_API_KEY');
+            \Log::info('ChatBot Debug: API Key Check', [
+                'key_exists' => !empty($apiKey),
+                'key_length' => strlen($apiKey),
+                'key_start' => substr($apiKey, 0, 10) . '...'
+            ]);
+
+            if (empty($apiKey)) {
+                throw new \Exception('OpenAI API key is not configured');
             }
 
-            $apiKey = env('OPENAI_API_KEY');
-            if (!$apiKey) {
-                \Log::error('ChatBot Error: OpenAI API key not found in environment');
-                throw new \Exception('OpenAI API key is not set');
+            if (!$request->has('message')) {
+                throw new \Exception('Message is required');
             }
 
             $open_ai = new OpenAi($apiKey);
             
-            \Log::info('ChatBot: Sending request to OpenAI', ['message' => $request->message]);
-            
-            $systemPrompt = "You are SZABIST's hiring platform assistant. Follow these rules:
-
-            1. Always start by identifying which campus the user is interested in if not specified.
-            
-            2. For campus-specific queries:
-               - Islamabad Campus: {$this->islamabadInfo}
-               - Karachi Campus: {$this->karachiInfo}
-            
-            3. For job requirements: {$this->jobRequirements}
-            
-            4. For application process: {$this->applicationInfo}
-            
-            5. For benefits information: {$this->benefitsInfo}
-            
-            Key Points to Always Remember:
-            - Recruitment typically takes 2-3 weeks
-            - Applications can be tracked online using email and phone number
-            - All degrees must be HEC recognized
-            - Document requirements are strict and must be complete
-            
-            Response Guidelines:
-            1. Be professional yet friendly
-            2. Provide specific, accurate information
-            3. Mention application tracking when discussing process
-            4. Include timeline information when relevant
-            5. Suggest visiting the official website for current openings
-            6. Ask for clarification if the query is unclear
-            
-            If asked about salary:
-            - Explain that it varies by position and experience
-            - Direct them to HR for specific details
-            - Mention the additional benefits package
-            
-            For technical position queries:
-            - Emphasize required qualifications
-            - Mention any mandatory certifications
-            - Explain the technical interview process";
+            \Log::info('ChatBot Debug: Sending request', [
+                'message_length' => strlen($request->message)
+            ]);
 
             $result = $open_ai->chat([
                 'model' => 'gpt-3.5-turbo',
                 'messages' => [
                     [
                         'role' => 'system',
-                        'content' => $systemPrompt
+                        'content' => 'You are SZABIST\'s hiring platform assistant. Be professional and helpful.'
                     ],
                     [
                         'role' => 'user',
@@ -260,26 +227,24 @@ class ChatbotController extends Controller
                     ]
                 ],
                 'temperature' => 0.7,
-                'max_tokens' => 800
+                'max_tokens' => 150
             ]);
 
-            \Log::info('ChatBot: Received response from OpenAI', ['result' => $result]);
-
             $response = json_decode($result, true);
-
-            if (!$response) {
-                \Log::error('ChatBot Error: Failed to decode OpenAI response', ['result' => $result]);
-                throw new \Exception('Invalid response from OpenAI');
+            
+            if (json_last_error() !== JSON_ERROR_NONE) {
+                \Log::error('ChatBot Error: JSON decode error', [
+                    'error' => json_last_error_msg(),
+                    'raw_response' => substr($result, 0, 1000)
+                ]);
+                throw new \Exception('Invalid response format');
             }
 
             if (isset($response['error'])) {
-                \Log::error('ChatBot Error: OpenAI API error', ['error' => $response['error']]);
-                throw new \Exception($response['error']['message'] ?? 'Error from OpenAI API');
-            }
-
-            if (!isset($response['choices'][0]['message']['content'])) {
-                \Log::error('ChatBot Error: Unexpected response format', ['response' => $response]);
-                throw new \Exception('Unexpected response format from OpenAI');
+                \Log::error('ChatBot Error: OpenAI API error', [
+                    'error' => $response['error']
+                ]);
+                throw new \Exception($response['error']['message'] ?? 'OpenAI API error');
             }
 
             return response()->json([
@@ -295,7 +260,7 @@ class ChatbotController extends Controller
             
             return response()->json([
                 'error' => true,
-                'message' => 'Sorry, I encountered an error. Please try again later.'
+                'message' => 'An error occurred while processing your request. Please try again.'
             ], 500);
         }
     }
