@@ -3,60 +3,65 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use GuzzleHttp\Client;
 
 class ChatbotController extends Controller
 {
     public function sendMessage(Request $request)
     {
         try {
-            // Log the incoming request
-            \Log::info('ChatBot Request:', [
-                'message' => $request->all(),
-                'api_key_exists' => !empty(env('OPENAI_API_KEY'))
-            ]);
-
             $validated = $request->validate([
                 'message' => 'required|string'
             ]);
 
-            $client = new Client();
-            
-            $apiUrl = 'https://api.openai.com/v1/chat/completions';
             $apiKey = env('OPENAI_API_KEY');
             
-            \Log::info('ChatBot Making API call to: ' . $apiUrl);
+            // Initialize cURL
+            $ch = curl_init('https://api.openai.com/v1/chat/completions');
             
-            $requestData = [
-                'headers' => [
-                    'Authorization' => 'Bearer ' . $apiKey,
-                    'Content-Type' => 'application/json',
-                ],
-                'json' => [
-                    'model' => 'gpt-3.5-turbo',
-                    'messages' => [
-                        ['role' => 'user', 'content' => $validated['message']]
-                    ],
-                    'temperature' => 0.7,
-                    'max_tokens' => 150
+            // Prepare the data
+            $data = [
+                'model' => 'gpt-3.5-turbo',
+                'messages' => [
+                    [
+                        'role' => 'user',
+                        'content' => $validated['message']
+                    ]
                 ]
             ];
-            
-            \Log::info('ChatBot Request Data:', $requestData);
-            
-            $response = $client->post($apiUrl, $requestData);
-            
-            \Log::info('ChatBot Raw Response:', [
-                'status' => $response->getStatusCode(),
-                'body' => $response->getBody()->getContents()
+
+            // Set cURL options
+            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+            curl_setopt($ch, CURLOPT_POST, true);
+            curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data));
+            curl_setopt($ch, CURLOPT_HTTPHEADER, [
+                'Content-Type: application/json',
+                'Authorization: Bearer ' . $apiKey
             ]);
             
-            // Need to rewind the stream after reading it
-            $response->getBody()->rewind();
+            // Execute the request
+            $response = curl_exec($ch);
             
-            $result = json_decode($response->getBody()->getContents(), true);
+            // Check for cURL errors
+            if (curl_errno($ch)) {
+                throw new \Exception('cURL error: ' . curl_error($ch));
+            }
             
-            if (!$result || !isset($result['choices'][0]['message']['content'])) {
+            // Get HTTP status code
+            $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+            if ($httpCode !== 200) {
+                throw new \Exception('HTTP error: ' . $httpCode . ' Response: ' . $response);
+            }
+            
+            // Close cURL
+            curl_close($ch);
+            
+            // Decode response
+            $result = json_decode($response, true);
+            if (json_last_error() !== JSON_ERROR_NONE) {
+                throw new \Exception('JSON decode error: ' . json_last_error_msg());
+            }
+            
+            if (!isset($result['choices'][0]['message']['content'])) {
                 throw new \Exception('Invalid response format from OpenAI');
             }
 
@@ -65,20 +70,12 @@ class ChatbotController extends Controller
             ]);
 
         } catch (\Exception $e) {
-            \Log::error('ChatBot Detailed Error:', [
-                'message' => $e->getMessage(),
-                'file' => $e->getFile(),
-                'line' => $e->getLine(),
-                'trace' => $e->getTraceAsString()
-            ]);
+            \Log::error('ChatBot Error: ' . $e->getMessage());
             
-            // In development, return the actual error
             if (config('app.debug')) {
                 return response()->json([
                     'error' => true,
-                    'debug_message' => $e->getMessage(),
-                    'file' => $e->getFile(),
-                    'line' => $e->getLine()
+                    'debug_message' => $e->getMessage()
                 ], 500);
             }
             
