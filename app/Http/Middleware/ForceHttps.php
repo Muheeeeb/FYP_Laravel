@@ -12,7 +12,7 @@ class ForceHttps
     {
         if (App::environment('production')) {
             // Force HTTPS in production
-            if (!$request->secure()) {
+            if (!$request->secure() && !$request->header('X-Forwarded-Proto') === 'https') {
                 return redirect()->secure($request->getRequestUri());
             }
         }
