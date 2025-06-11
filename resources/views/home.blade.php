@@ -479,6 +479,9 @@
         </style>
 
         <script>
+            // Get the base URL for the application
+            const baseUrl = window.location.origin;
+            
             document.addEventListener('DOMContentLoaded', function() {
                 const chatbotToggle = document.getElementById('chatbot-toggle');
                 const chatbotBox = document.getElementById('chatbot-box');
@@ -558,16 +561,18 @@
                     const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
                     
                     // Send message to server
-                    fetch('/chat', {
+                    fetch(`${window.location.origin}/chat`, {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
-                            'X-CSRF-TOKEN': csrfToken
+                            'X-CSRF-TOKEN': csrfToken,
+                            'Accept': 'application/json'
                         },
                         body: JSON.stringify({ message: message })
                     })
                     .then(response => {
                         if (!response.ok) {
+                            console.error('Server Error:', response.status, response.statusText);
                             throw new Error('Network response was not ok');
                         }
                         return response.json();
