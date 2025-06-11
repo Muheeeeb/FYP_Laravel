@@ -192,17 +192,30 @@ class ChatbotController extends Controller
     public function sendMessage(Request $request)
     {
         try {
-            if (!$request->has('message')) {
-                throw new \Exception('Message is required');
-            }
+            // Validate request
+            $validated = $request->validate([
+                'message' => 'required|string|max:1000',
+            ]);
 
+            // Get API key
             $apiKey = env('OPENAI_API_KEY');
             if (empty($apiKey)) {
-                throw new \Exception('OpenAI API key is not configured');
+                \Log::error('ChatBot Error: OpenAI API key not found');
+                return response()->json([
+                    'error' => true,
+                    'message' => 'Configuration error. Please contact support.'
+                ], 500);
             }
 
+            // Initialize OpenAI
             $open_ai = new OpenAi($apiKey);
 
+            // Log the request
+            \Log::info('ChatBot: Sending request to OpenAI', [
+                'message' => $validated['message']
+            ]);
+
+            // Make API call
             $result = $open_ai->chat([
                 'model' => 'gpt-3.5-turbo',
                 'messages' => [
@@ -212,25 +225,56 @@ class ChatbotController extends Controller
                     ],
                     [
                         'role' => 'user',
-                        'content' => $request->message
+                        'content' => $validated['message']
                     ]
                 ],
                 'temperature' => 0.7,
                 'max_tokens' => 150
             ]);
 
-            $response = json_decode($result, true);
+            // Log the response
+            \Log::info('ChatBot: Received response', [
+                'raw_response' => $result
+            ]);
 
+            // Parse response
+            $response = json_decode($result, true);
+            if (json_last_error() !== JSON_ERROR_NONE) {
+                throw new \Exception('Failed to parse OpenAI response: ' . json_last_error_msg());
+            }
+
+            // Check for API errors
             if (isset($response['error'])) {
                 throw new \Exception($response['error']['message'] ?? 'OpenAI API error');
             }
 
+            // Check for missing response
+            if (!isset($response['choices'][0]['message']['content'])) {
+                throw new \Exception('Unexpected response format from OpenAI');
+            }
+
+            // Return success response
             return response()->json([
                 'message' => $response['choices'][0]['message']['content']
             ]);
 
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            \Log::warning('ChatBot: Validation error', [
+                'errors' => $e->errors()
+            ]);
+            return response()->json([
+                'error' => true,
+                'message' => 'Please provide a valid message.'
+            ], 422);
+
         } catch (\Exception $e) {
-            \Log::error('ChatBot Error: ' . $e->getMessage());
+            \Log::error('ChatBot Error: ' . $e->getMessage(), [
+                'exception' => get_class($e),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            
             return response()->json([
                 'error' => true,
                 'message' => 'An error occurred while processing your request. Please try again.'

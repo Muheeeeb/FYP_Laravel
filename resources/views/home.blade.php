@@ -488,55 +488,60 @@
                 const chatbotMessages = document.getElementById('chatbot-messages');
                 const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
 
-                // Function to get a fresh CSRF token
-                async function refreshCsrfToken() {
-                    try {
-                        const response = await fetch('/csrf-token');
-                        const data = await response.json();
-                        return data.token;
-                    } catch (error) {
-                        console.error('Error refreshing CSRF token:', error);
-                        return null;
-                    }
-                }
-
                 async function sendMessage() {
                     const message = messageInput.value.trim();
                     if (!message) return;
 
-                    // Clear input and disable
-                    messageInput.value = '';
-                    messageInput.disabled = true;
-                    sendButton.disabled = true;
-
-                    // Add user message
-                    appendMessage(message, 'user');
-
                     try {
-                        // Get fresh CSRF token
-                        const token = await refreshCsrfToken();
-                        
+                        // Disable input and button
+                        messageInput.value = '';
+                        messageInput.disabled = true;
+                        sendButton.disabled = true;
+
+                        // Show user message
+                        appendMessage(message, 'user');
+
+                        // Show typing indicator
+                        const typingIndicator = document.createElement('div');
+                        typingIndicator.className = 'message bot-message typing';
+                        typingIndicator.textContent = 'Typing...';
+                        chatbotMessages.appendChild(typingIndicator);
+
+                        // Make API call
                         const response = await fetch('/chat', {
                             method: 'POST',
                             headers: {
                                 'Content-Type': 'application/json',
-                                'X-CSRF-TOKEN': token || csrfToken,
+                                'X-CSRF-TOKEN': csrfToken,
                                 'Accept': 'application/json'
                             },
                             body: JSON.stringify({ message: message })
                         });
 
+                        // Remove typing indicator
+                        const typingElements = document.getElementsByClassName('typing');
+                        while (typingElements.length > 0) {
+                            typingElements[0].remove();
+                        }
+
                         if (!response.ok) {
-                            throw new Error(`HTTP error! status: ${response.status}`);
+                            const errorData = await response.json();
+                            throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
                         }
 
                         const data = await response.json();
+                        if (data.error) {
+                            throw new Error(data.message || 'Unknown error occurred');
+                        }
+
                         appendMessage(data.message, 'bot');
+
                     } catch (error) {
                         console.error('Error:', error);
                         appendMessage('Sorry, there was an error processing your request. Please try again.', 'bot');
+
                     } finally {
-                        // Re-enable input
+                        // Re-enable input and button
                         messageInput.disabled = false;
                         sendButton.disabled = false;
                         messageInput.focus();
