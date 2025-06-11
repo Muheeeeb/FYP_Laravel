@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use Orhanerday\OpenAi\OpenAi;
+use GuzzleHttp\Client;
 
 class ChatbotController extends Controller
 {
@@ -192,63 +192,43 @@ class ChatbotController extends Controller
     public function sendMessage(Request $request)
     {
         try {
-            // Debug logging for API key
-            $apiKey = env('OPENAI_API_KEY');
-            \Log::info('ChatBot Debug: API Key Check', [
-                'key_exists' => !empty($apiKey),
-                'key_length' => strlen($apiKey),
-                'key_start' => substr($apiKey, 0, 10) . '...'
-            ]);
-
-            if (empty($apiKey)) {
-                throw new \Exception('OpenAI API key is not configured');
-            }
-
             if (!$request->has('message')) {
                 throw new \Exception('Message is required');
             }
 
-            $open_ai = new OpenAi($apiKey);
-            
-            \Log::info('ChatBot Debug: Sending request', [
-                'message_length' => strlen($request->message)
-            ]);
+            $apiKey = env('OPENAI_API_KEY');
+            if (empty($apiKey)) {
+                throw new \Exception('OpenAI API key is not configured');
+            }
 
-            $result = $open_ai->chat([
-                'model' => 'gpt-3.5-turbo',
-                'messages' => [
-                    [
-                        'role' => 'system',
-                        'content' => 'You are SZABIST\'s hiring platform assistant. Be professional and helpful.'
-                    ],
-                    [
-                        'role' => 'user',
-                        'content' => $request->message
-                    ]
+            $client = new Client();
+            
+            $response = $client->post('https://api.openai.com/v1/chat/completions', [
+                'headers' => [
+                    'Authorization' => 'Bearer ' . $apiKey,
+                    'Content-Type' => 'application/json',
                 ],
-                'temperature' => 0.7,
-                'max_tokens' => 150
+                'json' => [
+                    'model' => 'gpt-3.5-turbo',
+                    'messages' => [
+                        [
+                            'role' => 'system',
+                            'content' => 'You are SZABIST\'s hiring platform assistant. Be professional and helpful.'
+                        ],
+                        [
+                            'role' => 'user',
+                            'content' => $request->message
+                        ]
+                    ],
+                    'temperature' => 0.7,
+                    'max_tokens' => 150
+                ]
             ]);
 
-            $response = json_decode($result, true);
-            
-            if (json_last_error() !== JSON_ERROR_NONE) {
-                \Log::error('ChatBot Error: JSON decode error', [
-                    'error' => json_last_error_msg(),
-                    'raw_response' => substr($result, 0, 1000)
-                ]);
-                throw new \Exception('Invalid response format');
-            }
-
-            if (isset($response['error'])) {
-                \Log::error('ChatBot Error: OpenAI API error', [
-                    'error' => $response['error']
-                ]);
-                throw new \Exception($response['error']['message'] ?? 'OpenAI API error');
-            }
+            $result = json_decode($response->getBody(), true);
 
             return response()->json([
-                'message' => $response['choices'][0]['message']['content']
+                'message' => $result['choices'][0]['message']['content']
             ]);
 
         } catch (\Exception $e) {
