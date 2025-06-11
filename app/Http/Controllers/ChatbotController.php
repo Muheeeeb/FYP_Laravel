@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use GuzzleHttp\Client;
+use Orhanerday\OpenAi\OpenAi;
 
 class ChatbotController extends Controller
 {
@@ -201,43 +201,36 @@ class ChatbotController extends Controller
                 throw new \Exception('OpenAI API key is not configured');
             }
 
-            $client = new Client();
-            
-            $response = $client->post('https://api.openai.com/v1/chat/completions', [
-                'headers' => [
-                    'Authorization' => 'Bearer ' . $apiKey,
-                    'Content-Type' => 'application/json',
-                ],
-                'json' => [
-                    'model' => 'gpt-3.5-turbo',
-                    'messages' => [
-                        [
-                            'role' => 'system',
-                            'content' => 'You are SZABIST\'s hiring platform assistant. Be professional and helpful.'
-                        ],
-                        [
-                            'role' => 'user',
-                            'content' => $request->message
-                        ]
+            $open_ai = new OpenAi($apiKey);
+
+            $result = $open_ai->chat([
+                'model' => 'gpt-3.5-turbo',
+                'messages' => [
+                    [
+                        'role' => 'system',
+                        'content' => 'You are SZABIST\'s hiring platform assistant. Be professional and helpful.'
                     ],
-                    'temperature' => 0.7,
-                    'max_tokens' => 150
-                ]
+                    [
+                        'role' => 'user',
+                        'content' => $request->message
+                    ]
+                ],
+                'temperature' => 0.7,
+                'max_tokens' => 150
             ]);
 
-            $result = json_decode($response->getBody(), true);
+            $response = json_decode($result, true);
+
+            if (isset($response['error'])) {
+                throw new \Exception($response['error']['message'] ?? 'OpenAI API error');
+            }
 
             return response()->json([
-                'message' => $result['choices'][0]['message']['content']
+                'message' => $response['choices'][0]['message']['content']
             ]);
 
         } catch (\Exception $e) {
-            \Log::error('ChatBot Error: ' . $e->getMessage(), [
-                'file' => $e->getFile(),
-                'line' => $e->getLine(),
-                'trace' => $e->getTraceAsString()
-            ]);
-            
+            \Log::error('ChatBot Error: ' . $e->getMessage());
             return response()->json([
                 'error' => true,
                 'message' => 'An error occurred while processing your request. Please try again.'
