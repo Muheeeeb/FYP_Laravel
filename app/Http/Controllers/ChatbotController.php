@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use OpenAI\Laravel\Facades\OpenAI;
+use GuzzleHttp\Client;
 
 class ChatbotController extends Controller
 {
@@ -14,15 +14,27 @@ class ChatbotController extends Controller
                 'message' => 'required|string'
             ]);
 
-            $response = OpenAI::chat()->create([
-                'model' => 'gpt-3.5-turbo',
-                'messages' => [
-                    ['role' => 'user', 'content' => $validated['message']]
+            $client = new Client();
+            
+            $response = $client->post('https://api.openai.com/v1/chat/completions', [
+                'headers' => [
+                    'Authorization' => 'Bearer ' . env('OPENAI_API_KEY'),
+                    'Content-Type' => 'application/json',
+                ],
+                'json' => [
+                    'model' => 'gpt-3.5-turbo',
+                    'messages' => [
+                        ['role' => 'user', 'content' => $validated['message']]
+                    ],
+                    'temperature' => 0.7,
+                    'max_tokens' => 150
                 ]
             ]);
 
+            $result = json_decode($response->getBody()->getContents(), true);
+
             return response()->json([
-                'message' => $response->choices[0]->message->content
+                'message' => $result['choices'][0]['message']['content']
             ]);
 
         } catch (\Exception $e) {
