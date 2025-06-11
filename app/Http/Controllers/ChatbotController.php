@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 
 class ChatbotController extends Controller
 {
@@ -11,45 +12,32 @@ class ChatbotController extends Controller
     {
         try {
             $apiKey = env('OPENAI_API_KEY');
-            
-            if (empty($apiKey)) {
-                return response()->json([
-                    'message' => 'I apologize, but I am not configured properly. Please contact support.'
-                ], 500);
-            }
+            Log::info('API Key status: ' . (empty($apiKey) ? 'missing' : 'present'));
 
-            $response = Http::withHeaders([
-                'Authorization' => 'Bearer ' . $apiKey,
-                'Content-Type' => 'application/json',
-            ])->post('https://api.openai.com/v1/chat/completions', [
-                'model' => 'gpt-3.5-turbo',
-                'messages' => [
-                    ['role' => 'system', 'content' => 'You are a SZABIST recruitment assistant. Be concise.'],
-                    ['role' => 'user', 'content' => $request->input('message')]
-                ],
-                'max_tokens' => 100,
-                'temperature' => 0.7
+            $response = Http::withToken($apiKey)
+                ->timeout(60)
+                ->retry(3, 100)
+                ->post('https://api.openai.com/v1/chat/completions', [
+                    'model' => 'gpt-3.5-turbo',
+                    'messages' => [
+                        ['role' => 'user', 'content' => $request->input('message', 'Hello')]
+                    ]
+                ]);
+
+            Log::info('OpenAI Response', [
+                'status' => $response->status(),
+                'body' => $response->body()
             ]);
 
-            if (!$response->successful()) {
-                return response()->json([
-                    'message' => 'I apologize, but I am having trouble connecting to my brain. Please try again.'
-                ], 500);
-            }
-
-            $content = $response->json('choices.0.message.content');
-            
-            if (empty($content)) {
-                return response()->json([
-                    'message' => 'I apologize, but I could not generate a proper response. Please try again.'
-                ], 500);
-            }
-
-            return response()->json(['message' => trim($content)]);
+            return response()->json([
+                'message' => $response->json('choices.0.message.content', 'Default response if something goes wrong')
+            ]);
 
         } catch (\Exception $e) {
+            Log::error('Detailed error: ' . $e->getMessage());
+            
             return response()->json([
-                'message' => 'I apologize, but something went wrong. Please try again.'
+                'message' => 'Error: ' . $e->getMessage()
             ], 500);
         }
     }
