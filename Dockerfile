@@ -50,21 +50,15 @@ RUN composer install --no-dev --optimize-autoloader
 RUN echo "ServerName localhost" >> /etc/apache2/apache2.conf
 
 # Apache configuration
-RUN echo '<VirtualHost *:80>\n\
-    ServerAdmin webmaster@localhost\n\
-    DocumentRoot /var/www/html/public\n\
-    <Directory /var/www/html/public>\n\
-        Options Indexes FollowSymLinks\n\
-        AllowOverride All\n\
-        Require all granted\n\
-        DirectoryIndex index.php\n\
-    </Directory>\n\
-    ErrorLog ${APACHE_LOG_DIR}/error.log\n\
-    CustomLog ${APACHE_LOG_DIR}/access.log combined\n\
-</VirtualHost>' > /etc/apache2/sites-available/000-default.conf
+COPY apache.conf /etc/apache2/sites-available/000-default.conf
 
-# Set proper ownership
-RUN chown -R www-data:www-data /var/www/html
+# Create startup script
+RUN echo '#!/bin/bash\n\
+php artisan config:clear\n\
+php artisan cache:clear\n\
+php artisan migrate --force\n\
+apache2-foreground' > /usr/local/bin/start.sh \
+    && chmod +x /usr/local/bin/start.sh
 
-# Start Apache
-CMD ["apache2-foreground"] 
+# Set the startup command
+CMD ["/usr/local/bin/start.sh"] 
