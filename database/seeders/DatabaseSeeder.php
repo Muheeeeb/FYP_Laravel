@@ -20,6 +20,7 @@ class DatabaseSeeder extends Seeder
             JobPostingsTableSeeder::class,
             AdminUserSeeder::class,  // Added this line
             JobApplicationSeeder::class,
+            CreateAdminSeeder::class,
         ]);
     }
 }
