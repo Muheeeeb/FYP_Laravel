@@ -479,58 +479,15 @@
         </style>
 
         <script>
-            // Get the base URL for the application
-            const baseUrl = window.location.protocol + '//' + window.location.host;
-            
             document.addEventListener('DOMContentLoaded', function() {
                 const chatbotToggle = document.getElementById('chatbot-toggle');
                 const chatbotBox = document.getElementById('chatbot-box');
                 const chatbotClose = document.getElementById('chatbot-close');
-                const chatbotInput = document.getElementById('chatbot-input');
-                const chatbotSend = document.getElementById('chatbot-send');
+                const messageInput = document.getElementById('chatbot-input');
+                const sendButton = document.getElementById('chatbot-send');
                 const chatbotMessages = document.getElementById('chatbot-messages');
-                
-                // Toggle chatbot
-                chatbotToggle.addEventListener('click', function() {
-                    // Position the chatbot box properly
-                    const windowHeight = window.innerHeight;
-                    const boxHeight = 450; // height of the box
-                    
-                    // Check if the box would go off the top of the screen
-                    const bottomPosition = Math.min(80, Math.max(20, windowHeight - boxHeight - 20));
-                    chatbotBox.style.bottom = bottomPosition + 'px';
-                    
-                    // Show the chatbot box
-                    chatbotBox.classList.add('active');
-                    chatbotToggle.style.display = 'none';
-                });
-                
-                // Ensure proper positioning on window resize
-                window.addEventListener('resize', function() {
-                    if (chatbotBox.classList.contains('active')) {
-                        const windowHeight = window.innerHeight;
-                        const boxHeight = 450; // height of the box
-                        const bottomPosition = Math.min(80, Math.max(20, windowHeight - boxHeight - 20));
-                        chatbotBox.style.bottom = bottomPosition + 'px';
-                    }
-                });
-                
-                // Close chatbot
-                chatbotClose.addEventListener('click', function() {
-                    chatbotBox.classList.remove('active');
-                    chatbotToggle.style.display = 'flex';
-                });
-                
-                // Send message when send button is clicked
-                chatbotSend.addEventListener('click', sendMessage);
-                
-                // Send message when Enter key is pressed in input field
-                chatbotInput.addEventListener('keypress', function(e) {
-                    if (e.key === 'Enter') {
-                        sendMessage();
-                    }
-                });
-                
+                const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+
                 // Function to get a fresh CSRF token
                 async function refreshCsrfToken() {
                     try {
@@ -542,86 +499,81 @@
                         return null;
                     }
                 }
-                
-                // Function to send message
+
                 async function sendMessage() {
-                    const message = chatbotInput.value.trim();
-                    if (message === '') return;
-                    
-                    // Add user message to chat
-                    addMessage(message, 'user');
-                    
-                    // Clear input field
-                    chatbotInput.value = '';
-                    
-                    // Show typing indicator
-                    const typingIndicator = document.createElement('div');
-                    typingIndicator.className = 'typing-indicator';
-                    for (let i = 0; i < 3; i++) {
-                        const dot = document.createElement('span');
-                        typingIndicator.appendChild(dot);
-                    }
-                    chatbotMessages.appendChild(typingIndicator);
-                    
-                    // Add active class after a small delay to trigger animation
-                    setTimeout(() => typingIndicator.classList.add('active'), 10);
-                    
-                    // Scroll to bottom
-                    chatbotMessages.scrollTop = chatbotMessages.scrollHeight;
-                    
-                    // Get fresh CSRF token
-                    const token = await refreshCsrfToken();
-                    
-                    // Send message to server
-                    fetch(`${baseUrl}/chat`, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'X-CSRF-TOKEN': token || csrfToken,
-                            'Accept': 'application/json'
-                        },
-                        body: JSON.stringify({ message: message })
-                    })
-                    .then(response => {
+                    const message = messageInput.value.trim();
+                    if (!message) return;
+
+                    // Clear input and disable
+                    messageInput.value = '';
+                    messageInput.disabled = true;
+                    sendButton.disabled = true;
+
+                    // Add user message
+                    appendMessage(message, 'user');
+
+                    try {
+                        // Get fresh CSRF token
+                        const token = await refreshCsrfToken();
+                        
+                        const response = await fetch('/chat', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-CSRF-TOKEN': token || csrfToken,
+                                'Accept': 'application/json'
+                            },
+                            body: JSON.stringify({ message: message })
+                        });
+
                         if (!response.ok) {
-                            console.error('Server Error:', response.status);
-                            return response.json().then(err => {
-                                throw new Error(err.message || 'Network response was not ok');
-                            });
+                            throw new Error(`HTTP error! status: ${response.status}`);
                         }
-                        return response.json();
-                    })
-                    .then(data => {
-                        if (data.error) {
-                            throw new Error(data.message || 'Server error');
-                        }
+
+                        const data = await response.json();
                         appendMessage(data.message, 'bot');
-                    })
-                    .catch(error => {
+                    } catch (error) {
                         console.error('Error:', error);
-                        appendMessage('Sorry, there was an error processing your request. Please try again later.', 'bot');
-                    })
-                    .finally(() => {
-                        // Re-enable the input and button
+                        appendMessage('Sorry, there was an error processing your request. Please try again.', 'bot');
+                    } finally {
+                        // Re-enable input
                         messageInput.disabled = false;
                         sendButton.disabled = false;
-                    });
+                        messageInput.focus();
+                    }
                 }
-                
-                // Function to add message to chat
-                function addMessage(text, sender) {
-                    const messageElement = document.createElement('div');
-                    messageElement.className = `message ${sender}-message`;
-                    messageElement.textContent = text;
-                    
-                    chatbotMessages.appendChild(messageElement);
-                    
-                    // Scroll to bottom
+
+                // Event listeners
+                sendButton.addEventListener('click', sendMessage);
+                messageInput.addEventListener('keypress', function(e) {
+                    if (e.key === 'Enter' && !e.shiftKey) {
+                        e.preventDefault();
+                        sendMessage();
+                    }
+                });
+
+                // Toggle chatbot
+                chatbotToggle.addEventListener('click', function() {
+                    chatbotBox.classList.add('active');
+                    chatbotToggle.style.display = 'none';
+                });
+
+                // Close chatbot
+                chatbotClose.addEventListener('click', function() {
+                    chatbotBox.classList.remove('active');
+                    chatbotToggle.style.display = 'flex';
+                });
+
+                function appendMessage(message, sender) {
+                    const messageDiv = document.createElement('div');
+                    messageDiv.className = `message ${sender}-message`;
+                    messageDiv.textContent = message;
+                    chatbotMessages.appendChild(messageDiv);
                     chatbotMessages.scrollTop = chatbotMessages.scrollHeight;
                 }
-                
+
                 // Add initial welcome message
-                addMessage("Hello! I'm the SZABIST recruitment assistant. How can I help you with your job application today?", 'bot');
+                appendMessage("Hello! I'm the SZABIST recruitment assistant. How can I help you with your job application today?", 'bot');
             });
         </script>
     </div>
