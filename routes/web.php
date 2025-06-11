@@ -537,8 +537,7 @@ Route::post('/verify', [AuthController::class, 'verify'])->name('verify.code');
 
 // Add new route for /chat endpoint
 Route::post('/chat', [ChatbotController::class, 'sendMessage'])
-    ->name('chat.message')
-    ->withoutMiddleware(['csrf']);
+    ->name('chat.message');
 
 // If in production, apply SSL middleware to all routes
 if (app()->environment('production')) {

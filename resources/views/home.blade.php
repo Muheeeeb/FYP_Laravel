@@ -493,7 +493,7 @@
                     if (!message) return;
 
                     try {
-                        // Disable input and button
+                        // Clear input and disable
                         messageInput.value = '';
                         messageInput.disabled = true;
                         sendButton.disabled = true;
@@ -503,43 +503,35 @@
 
                         // Show typing indicator
                         const typingIndicator = document.createElement('div');
-                        typingIndicator.className = 'message bot-message typing';
-                        typingIndicator.textContent = 'Typing...';
+                        typingIndicator.className = 'typing-indicator';
+                        typingIndicator.innerHTML = '<span></span><span></span><span></span>';
                         chatbotMessages.appendChild(typingIndicator);
+                        typingIndicator.classList.add('active');
 
                         // Make API call
                         const response = await fetch('/chat', {
                             method: 'POST',
                             headers: {
                                 'Content-Type': 'application/json',
-                                'X-CSRF-TOKEN': csrfToken,
-                                'Accept': 'application/json'
+                                'X-CSRF-TOKEN': csrfToken
                             },
                             body: JSON.stringify({ message: message })
                         });
 
                         // Remove typing indicator
-                        const typingElements = document.getElementsByClassName('typing');
-                        while (typingElements.length > 0) {
-                            typingElements[0].remove();
-                        }
-
-                        if (!response.ok) {
-                            const errorData = await response.json();
-                            throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
-                        }
+                        typingIndicator.remove();
 
                         const data = await response.json();
-                        if (data.error) {
-                            throw new Error(data.message || 'Unknown error occurred');
+                        
+                        if (!response.ok) {
+                            throw new Error(data.message || `Error: ${response.status}`);
                         }
 
                         appendMessage(data.message, 'bot');
 
                     } catch (error) {
                         console.error('Error:', error);
-                        appendMessage('Sorry, there was an error processing your request. Please try again.', 'bot');
-
+                        appendMessage('Sorry, there was an error. Please try again.', 'bot');
                     } finally {
                         // Re-enable input and button
                         messageInput.disabled = false;
