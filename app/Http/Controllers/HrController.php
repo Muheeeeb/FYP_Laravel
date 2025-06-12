@@ -144,7 +144,10 @@ class HrController extends Controller
         $departmentStats = DB::table('job_postings')
             ->join('job_requests', 'job_postings.job_request_id', '=', 'job_requests.id')
             ->join('departments', 'job_requests.department_id', '=', 'departments.id')
-            ->join('job_applications', 'job_postings.id', '=', 'job_applications.job_id')
+            ->join('job_applications', function($join) {
+                $join->on('job_postings.id', '=', 'job_applications.job_posting_id')
+                     ->orOn('job_postings.id', '=', 'job_applications.job_id');
+            })
             ->select(
                 'departments.name as department_name',
                 DB::raw('COUNT(DISTINCT job_postings.id) as open_positions'),
@@ -158,7 +161,10 @@ class HrController extends Controller
     
         // Get application timeline
         $applicationTimeline = DB::table('job_applications')
-            ->join('job_postings', 'job_applications.job_id', '=', 'job_postings.id')
+            ->join('job_postings', function($join) {
+                $join->on('job_applications.job_posting_id', '=', 'job_postings.id')
+                     ->orOn('job_applications.job_id', '=', 'job_postings.id');
+            })
             ->join('job_requests', 'job_postings.job_request_id', '=', 'job_requests.id')
             ->join('departments', 'job_requests.department_id', '=', 'departments.id')
             ->select(

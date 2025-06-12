@@ -52,7 +52,7 @@
                                            class="btn btn-sm btn-info">
                                             <i class="fas fa-eye"></i> View Applications
                                         </a>
-                                        <form action="{{ route('hr.delete.job-posting', $posting->id) }}" 
+                                        <form action="{{ route('hr.delete-job', $posting->id) }}" 
                                               method="POST" 
                                               class="d-inline">
                                             @csrf
