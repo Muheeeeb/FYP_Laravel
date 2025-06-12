@@ -5,7 +5,7 @@ import os
 import logging
 import time
 from logging.handlers import RotatingFileHandler
-import openai
+from openai import OpenAI
 from flask_cors import CORS
 
 # Initialize the Flask app
@@ -38,7 +38,7 @@ if not API_KEY:
     )
 
 try:
-    client = openai.OpenAI(api_key=API_KEY)
+    client = OpenAI(api_key=API_KEY)
     # Test the API key by making a small request
     response = client.chat.completions.create(
         model="gpt-4",
@@ -262,5 +262,6 @@ def health_check():
     """Health check endpoint"""
     return jsonify({"status": "healthy"}), 200
 
-if __name__ == "__main__":
-    app.run(debug=True, host='127.0.0.1', port=5000, threaded=True) 
+if __name__ == '__main__':
+    port = int(os.environ.get('PORT', 5000))
+    app.run(host='0.0.0.0', port=port) 
