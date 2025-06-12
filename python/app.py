@@ -5,7 +5,7 @@ import os
 import logging
 import time
 from logging.handlers import RotatingFileHandler
-from openai import OpenAI
+import openai  # Changed back to basic import
 from flask_cors import CORS
 
 # Initialize the Flask app
@@ -38,11 +38,11 @@ if not API_KEY:
     )
 
 try:
-    # Initialize OpenAI client with minimal configuration
-    client = OpenAI()  # It will automatically use OPENAI_API_KEY from environment
+    # Set the API key directly
+    openai.api_key = API_KEY
     
     # Test the API key by making a small request
-    response = client.chat.completions.create(
+    response = openai.ChatCompletion.create(
         model="gpt-4",
         messages=[{"role": "user", "content": "test"}],
         max_tokens=5
@@ -60,7 +60,7 @@ def get_openai_response(input_text, retries=3, delay=1):
             
             try:
                 # Generate content using GPT-4
-                response = client.chat.completions.create(
+                response = openai.ChatCompletion.create(
                     model="gpt-4",
                     messages=[
                         {
