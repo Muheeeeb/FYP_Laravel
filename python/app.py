@@ -7,7 +7,7 @@ from flask_cors import CORS
 app = Flask(__name__)
 CORS(app)  # Enable CORS for all routes
 
-# Set OpenAI API key
+# Set OpenAI API key directly
 openai.api_key = os.getenv('OPENAI_API_KEY')
 
 @app.route('/health', methods=['GET'])
@@ -36,15 +36,18 @@ def rank_cv():
         Format as JSON with keys: match_percentage, matching_skills, missing_skills, explanation
         """
 
-        response = openai.ChatCompletion.create(
-            model="gpt-3.5-turbo",
-            messages=[
-                {"role": "system", "content": "You are a professional CV analyzer."},
-                {"role": "user", "content": prompt}
-            ]
+        # Using older API style
+        response = openai.Completion.create(
+            engine="text-davinci-003",
+            prompt=prompt,
+            max_tokens=1000,
+            temperature=0.7,
+            top_p=1.0,
+            frequency_penalty=0.0,
+            presence_penalty=0.0
         )
 
-        return jsonify({"response": response.choices[0].message.content})
+        return jsonify({"response": response.choices[0].text.strip()})
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
