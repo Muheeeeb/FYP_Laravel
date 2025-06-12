@@ -10,7 +10,7 @@ use Illuminate\Http\Client\ConnectionException;
 
 class CvRankingService
 {
-    protected $apiUrl = 'https://cv-ranking-dtvo.onrender.com/evaluate_resume';
+    protected $apiUrl = 'https://cv-ranking-laravel.onrender.com/rank-cv';
     protected $timeout = 120; // 120 seconds timeout
 
     public function rankApplications(JobPosting $jobPosting, array $specificApplications = null)
@@ -37,8 +37,10 @@ class CvRankingService
                 return true;
             }
 
-            $files = [];
-            $validApplications = [];
+            $jobDescription = $jobPosting->description;
+            if (!empty($jobPosting->requirements)) {
+                $jobDescription .= "\n\nRequirements:\n" . $jobPosting->requirements;
+            }
 
             foreach ($unrankedApplications as $application) {
                 try {
@@ -58,34 +60,60 @@ class CvRankingService
                         continue;
                     }
 
-                    // Try to open the file with read lock
-                    $handle = fopen($cvPath, 'r');
-                    if (!$handle) {
-                        \Log::error("Could not open CV file: {$cvPath} for application ID: {$application->id}");
+                    // Read the CV text content
+                    $cvText = file_get_contents($cvPath);
+                    if (!$cvText) {
+                        \Log::error("Could not read CV file: {$cvPath} for application ID: {$application->id}");
                         continue;
                     }
 
-                    // Try to acquire a shared lock
-                    if (!flock($handle, LOCK_SH | LOCK_NB)) {
-                        \Log::warning("File is locked: {$cvPath} for application ID: {$application->id}");
-                        fclose($handle);
-                        continue;
-                    }
-
-                    $files[] = [
-                        'name' => 'resumes',
-                        'contents' => $handle,
-                        'filename' => basename($cvPath)
-                    ];
-                    $validApplications[] = [
-                        'application' => $application,
-                        'handle' => $handle,
-                        'filename' => basename($cvPath)
-                    ];
+                    // Make API request with timeout
+                    $response = Http::timeout($this->timeout)
+                        ->post($this->apiUrl, [
+                            'job_description' => $jobDescription,
+                            'cv_text' => $cvText
+                        ]);
                     
-                    \Log::info("Successfully prepared CV file for application ID: {$application->id}");
+                    if ($response->failed()) {
+                        \Log::error("API request failed for application ID: {$application->id}", [
+                            'status' => $response->status(),
+                            'body' => $response->body()
+                        ]);
+                        continue;
+                    }
+
+                    $result = $response->json();
+                    
+                    if (!isset($result['response'])) {
+                        \Log::error("Invalid API response format for application ID: {$application->id}", [
+                            'response' => $result
+                        ]);
+                        continue;
+                    }
+
+                    // Parse the JSON response from GPT
+                    $analysis = json_decode($result['response'], true);
+                    if (!$analysis) {
+                        \Log::error("Failed to parse GPT response for application ID: {$application->id}", [
+                            'response' => $result['response']
+                        ]);
+                        continue;
+                    }
+
+                    // Update application with ranking data
+                    $application->update([
+                        'match_percentage' => $analysis['match_percentage'] ?? 0,
+                        'missing_keywords' => json_encode($analysis['missing_skills'] ?? []),
+                        'profile_summary' => $analysis['explanation'] ?? '',
+                        'is_ranked' => true
+                    ]);
+                    
+                    \Log::info("Successfully ranked application", [
+                        'application_id' => $application->id,
+                        'match_percentage' => $analysis['match_percentage'] ?? 0
+                    ]);
                 } catch (\Exception $e) {
-                    \Log::error("Error preparing CV file for application ID: {$application->id}", [
+                    \Log::error("Error processing application ID: {$application->id}", [
                         'error' => $e->getMessage(),
                         'trace' => $e->getTraceAsString()
                     ]);
@@ -93,106 +121,7 @@ class CvRankingService
                 }
             }
 
-            if (empty($files)) {
-                \Log::warning("No valid CV files found for job posting ID: {$jobPosting->id}");
-                return false;
-            }
-
-            try {
-                // Prepare the job description
-                $jobDescription = $jobPosting->description . "\n\nRequirements:\n" . $jobPosting->requirements;
-                
-                \Log::info("Making API request", [
-                    'job_posting_id' => $jobPosting->id,
-                    'files_count' => count($files),
-                    'description_length' => strlen($jobDescription)
-                ]);
-
-                // Make API request with timeout
-                $response = Http::timeout($this->timeout)
-                    ->attach($files)
-                    ->post($this->apiUrl, [
-                        'job_description' => $jobDescription
-                    ]);
-                
-                if ($response->failed()) {
-                    throw new \Exception("API request failed with status: {$response->status()} - {$response->body()}");
-                }
-
-                $results = $response->json();
-                
-                if (!is_array($results)) {
-                    throw new \Exception('Invalid response format from API: expected array');
-                }
-
-                $successCount = 0;
-                foreach ($results as $result) {
-                    if (!is_array($result) || !isset($result['filename'])) {
-                        \Log::warning("Invalid result format", ['result' => $result]);
-                        continue;
-                    }
-
-                    $validApp = collect($validApplications)->first(function ($item) use ($result) {
-                        return $item['filename'] === $result['filename'];
-                    });
-
-                    if (!$validApp) {
-                        \Log::warning("No matching application found for result", ['filename' => $result['filename']]);
-                        continue;
-                    }
-
-                    if (isset($result['error'])) {
-                        \Log::error("Error ranking CV", [
-                            'filename' => $result['filename'],
-                            'error' => $result['error']
-                        ]);
-                        continue;
-                    }
-
-                    if (!isset($result['analysis']) || !is_array($result['analysis'])) {
-                        \Log::warning("Missing or invalid analysis", ['result' => $result]);
-                        continue;
-                    }
-
-                    try {
-                        $validApp['application']->update([
-                            'match_percentage' => $result['analysis']['match_percentage'] ?? 0,
-                            'missing_keywords' => json_encode($result['analysis']['missing_keywords'] ?? []),
-                            'profile_summary' => $result['analysis']['profile_summary'] ?? '',
-                            'is_ranked' => true
-                        ]);
-                        
-                        $successCount++;
-                        \Log::info("Successfully ranked application", [
-                            'application_id' => $validApp['application']->id,
-                            'match_percentage' => $result['analysis']['match_percentage'] ?? 0
-                        ]);
-                    } catch (\Exception $e) {
-                        \Log::error("Error updating application", [
-                            'application_id' => $validApp['application']->id,
-                            'error' => $e->getMessage()
-                        ]);
-                    }
-                }
-
-                \Log::info("Ranking process completed", [
-                    'job_posting_id' => $jobPosting->id,
-                    'total_processed' => count($results),
-                    'success_count' => $successCount
-                ]);
-
-                return true;
-            } catch (ConnectionException $e) {
-                throw new \Exception("Flask API connection error: {$e->getMessage()}");
-            } finally {
-                // Clean up file handles
-                foreach ($validApplications as $validApp) {
-                    if (isset($validApp['handle']) && is_resource($validApp['handle'])) {
-                        flock($validApp['handle'], LOCK_UN);
-                        fclose($validApp['handle']);
-                    }
-                }
-            }
+            return true;
         } catch (\Exception $e) {
             \Log::error("CV Ranking Error", [
                 'job_posting_id' => $jobPosting->id,
@@ -215,8 +144,7 @@ class CvRankingService
         try {
             \Log::info("Starting to rank single resume", [
                 'resume_path' => $resumePath,
-                'job_description_length' => strlen($jobDescription),
-                'api_url' => $this->apiUrl
+                'job_description_length' => strlen($jobDescription)
             ]);
             
             // Check if the file exists
@@ -228,160 +156,62 @@ class CvRankingService
                 ];
             }
             
-            // Get the file size
-            $fileSize = filesize($resumePath);
-            \Log::info("Resume file size", ['size' => $fileSize, 'size_kb' => round($fileSize/1024, 2) . ' KB']);
-            
-            // Try to open the file with read lock
-            $handle = fopen($resumePath, 'r');
-            if (!$handle) {
-                \Log::error("Could not open resume file", ['resume_path' => $resumePath]);
+            // Read the CV text content
+            $cvText = file_get_contents($resumePath);
+            if (!$cvText) {
+                \Log::error("Could not read resume file", ['resume_path' => $resumePath]);
                 return [
                     'success' => false,
-                    'error' => 'Could not open resume file'
+                    'error' => 'Could not read resume file'
                 ];
             }
             
-            // Try to acquire a shared lock
-            if (!flock($handle, LOCK_SH | LOCK_NB)) {
-                \Log::error("Resume file is locked", ['resume_path' => $resumePath]);
-                fclose($handle);
-                return [
-                    'success' => false,
-                    'error' => 'Resume file is locked by another process'
-                ];
-            }
-            
-            try {
-                $filename = basename($resumePath);
-                \Log::info("Preparing API request", [
-                    'filename' => $filename,
-                    'timeout' => $this->timeout,
+            // Make API request with timeout
+            $response = Http::timeout($this->timeout)
+                ->post($this->apiUrl, [
+                    'job_description' => $jobDescription,
+                    'cv_text' => $cvText
                 ]);
-                
-                // Make API request with timeout
-                $response = Http::timeout($this->timeout)
-                    ->withOptions([
-                        'verify' => false, // Disable SSL verification for local development
-                        'connect_timeout' => 10
-                    ])
-                    ->attach([
-                        [
-                            'name' => 'resumes',
-                            'contents' => $handle,
-                            'filename' => $filename
-                        ]
-                    ])
-                    ->post($this->apiUrl, [
-                        'job_description' => $jobDescription
-                    ]);
-                
-                \Log::info("API Response received", [
+            
+            if ($response->failed()) {
+                \Log::error("API request failed", [
                     'status' => $response->status(),
-                    'headers' => $response->headers(),
-                    'raw_body_length' => strlen($response->body())
+                    'response' => $response->body()
                 ]);
-                
-                // Check for HTTP errors
-                if ($response->failed()) {
-                    \Log::error("API request failed", [
-                        'status' => $response->status(),
-                        'response' => $response->body()
-                    ]);
-                    return [
-                        'success' => false,
-                        'error' => 'API request failed: HTTP ' . $response->status()
-                    ];
-                }
-                
-                // Try to parse JSON response
-                try {
-                    $results = $response->json();
-                    
-                    if ($results === null) {
-                        \Log::error("Failed to parse JSON response", ['raw' => $response->body()]);
-                        return [
-                            'success' => false,
-                            'error' => 'Invalid JSON response from API'
-                        ];
-                    }
-                    
-                    \Log::info("API response parsed successfully", [
-                        'results_type' => gettype($results),
-                        'results_count' => is_array($results) ? count($results) : 'not an array'
-                    ]);
-                } catch (\Illuminate\Http\Client\ConnectionException $e) {
-                    \Log::error("API connection error", [
-                        'error' => $e->getMessage(),
-                        'url' => $this->apiUrl
-                    ]);
-                    return [
-                        'success' => false,
-                        'error' => 'Failed to connect to ranking API: ' . $e->getMessage()
-                    ];
-                } catch (\Exception $e) {
-                    \Log::error("API request exception", [
-                        'error' => $e->getMessage()
-                    ]);
-                    return [
-                        'success' => false,
-                        'error' => 'Error making API request: ' . $e->getMessage()
-                    ];
-                }
-                
-                if (!is_array($results) || count($results) === 0) {
-                    \Log::error("API returned invalid result format", ['results' => $results]);
-                    return [
-                        'success' => false,
-                        'error' => 'Invalid response format from API'
-                    ];
-                }
-                
-                // Get the first result (there should only be one)
-                $result = $results[0];
-                \Log::info("Processing API result", [
-                    'result_keys' => array_keys($result),
-                    'has_analysis' => isset($result['analysis']),
-                    'has_error' => isset($result['error'])
-                ]);
-                
-                // Check if result contains error
-                if (isset($result['error'])) {
-                    \Log::error("Error in API result", ['error' => $result['error']]);
-                    return [
-                        'success' => false,
-                        'error' => $result['error']
-                    ];
-                }
-                
-                // Check if result contains analysis
-                if (!isset($result['analysis']) || !is_array($result['analysis'])) {
-                    \Log::error("Missing analysis in API result", ['result' => $result]);
-                    return [
-                        'success' => false,
-                        'error' => 'Missing analysis in API result'
-                    ];
-                }
-                
-                \Log::info("Successfully ranked resume", [
-                    'resume_path' => $resumePath,
-                    'match_percentage' => $result['analysis']['match_percentage'] ?? 'unknown',
-                    'analysis_keys' => array_keys($result['analysis'])
-                ]);
-                
-                // Return success with the analysis data
                 return [
-                    'success' => true,
-                    'analysis' => $result['analysis']
+                    'success' => false,
+                    'error' => 'API request failed: ' . $response->body()
                 ];
-            } finally {
-                // Clean up: close file handle and release lock
-                if (isset($handle) && is_resource($handle)) {
-                    flock($handle, LOCK_UN);
-                    fclose($handle);
-                    \Log::info("File handle closed and lock released");
-                }
             }
+            
+            $result = $response->json();
+            
+            if (!isset($result['response'])) {
+                \Log::error("Invalid API response format", ['response' => $result]);
+                return [
+                    'success' => false,
+                    'error' => 'Invalid response format from API'
+                ];
+            }
+            
+            // Parse the JSON response from GPT
+            $analysis = json_decode($result['response'], true);
+            if (!$analysis) {
+                \Log::error("Failed to parse GPT response", ['response' => $result['response']]);
+                return [
+                    'success' => false,
+                    'error' => 'Failed to parse API response'
+                ];
+            }
+            
+            return [
+                'success' => true,
+                'analysis' => [
+                    'match_percentage' => $analysis['match_percentage'] ?? 0,
+                    'missing_keywords' => $analysis['missing_skills'] ?? [],
+                    'profile_summary' => $analysis['explanation'] ?? ''
+                ]
+            ];
         } catch (\Exception $e) {
             \Log::error("Error ranking resume", [
                 'resume_path' => $resumePath,
