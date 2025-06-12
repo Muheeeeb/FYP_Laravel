@@ -261,26 +261,30 @@ Route::middleware(['auth', 'prevent.back.history'])->group(function () {
 
     // HR Routes
     Route::middleware(['auth', 'role:hr', 'prevent.back.history'])->group(function () {
-        Route::prefix('hr')->name('hr.')->group(function () {
+        Route::prefix('hr')->group(function () {
             // Dashboard
-            Route::get('/dashboard', [HrController::class, 'dashboard'])->name('dashboard');
+            Route::get('/dashboard', [HrController::class, 'dashboard'])->name('hr.dashboard');
             
             // Job Management
-            Route::get('/manage-jobs', [HrController::class, 'manageJobs'])->name('manage.jobs');
-            Route::get('/job-posting', [HrController::class, 'jobPosting'])->name('job-posting');
-            Route::post('/job-posting', [HrController::class, 'postJob'])->name('post-job');
-            Route::post('/job/{id}/close', [HrController::class, 'closeJob'])->name('close.job');
+            Route::get('/manage-jobs', [HrController::class, 'manageJobs'])->name('hr.manage.jobs');
+            Route::get('/job-postings', [HrController::class, 'jobPostings'])->name('hr.job-posting');
+            Route::post('/job-posting/{id}', [HrController::class, 'postJob'])->name('hr.post-job');
+            Route::delete('/job-posting/{id}', [HrController::class, 'deleteJob'])->name('hr.delete-job');
+            Route::post('/job/{id}/close', [HrController::class, 'closeJob'])->name('hr.close.job');
             
             // Applications
-            Route::get('/applications', [HrController::class, 'applications'])->name('applications');
-            Route::get('/applications/job/{id}', [HrController::class, 'viewApplications'])->name('applications.job');
-            Route::get('/applications/resume/{id}', [HrController::class, 'viewResume'])->name('applications.resume');
-            Route::put('/applications/{application}/status', [HrController::class, 'updateApplicationStatus'])->name('applications.status');
-            Route::get('/applications/export/{jobId?}', [HrController::class, 'exportApplications'])->name('applications.export');
-            Route::get('/applications/refresh-ranking/{jobId}', [HrController::class, 'refreshRanking'])->name('applications.refresh-ranking');
+            Route::get('/applications', [HrController::class, 'applications'])->name('hr.applications');
+            Route::get('/applications/{jobId?}', [HrController::class, 'viewApplications'])->name('hr.applications.job');
+            Route::get('/applications/resume/{id}', [HrController::class, 'viewResume'])->name('hr.applications.resume');
+            Route::post('/applications/{id}/approve', [HrController::class, 'approveApplication'])->name('hr.applications.approve');
+            Route::post('/applications/{id}/reject', [HrController::class, 'rejectApplication'])->name('hr.applications.reject');
+            Route::put('/applications/{application}/status', [HrController::class, 'updateApplicationStatus'])->name('hr.applications.status');
+            Route::get('/applications/export/{jobId?}', [HrController::class, 'exportApplications'])->name('hr.applications.export');
+            Route::get('/applications/refresh-ranking/{jobId}', [HrController::class, 'refreshRanking'])->name('hr.applications.refresh-ranking');
+            Route::post('/applications/{id}/schedule-interview', [HrController::class, 'scheduleInterview'])->name('hr.applications.schedule-interview');
             
             // Analytics
-            Route::get('/analytics', [HrController::class, 'analytics'])->name('analytics');
+            Route::get('/analytics', [HrController::class, 'analytics'])->name('hr.analytics');
         });
     });
 
