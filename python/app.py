@@ -1,14 +1,15 @@
 from flask import Flask, request, jsonify
 import os
-import openai
+import requests
 from flask_cors import CORS
 
 # Initialize the Flask app
 app = Flask(__name__)
 CORS(app)  # Enable CORS for all routes
 
-# Set OpenAI API key directly
-openai.api_key = os.getenv('OPENAI_API_KEY')
+API_KEY = os.getenv('OPENAI_API_KEY')
+if not API_KEY:
+    raise ValueError("OpenAI API key not found")
 
 @app.route('/health', methods=['GET'])
 def health_check():
@@ -36,19 +37,35 @@ def rank_cv():
         Format as JSON with keys: match_percentage, matching_skills, missing_skills, explanation
         """
 
-        # Using older API style
-        response = openai.Completion.create(
-            engine="text-davinci-003",
-            prompt=prompt,
-            max_tokens=1000,
-            temperature=0.7,
-            top_p=1.0,
-            frequency_penalty=0.0,
-            presence_penalty=0.0
+        # Make direct API call to OpenAI
+        headers = {
+            'Authorization': f'Bearer {API_KEY}',
+            'Content-Type': 'application/json',
+        }
+
+        payload = {
+            'model': 'gpt-3.5-turbo',
+            'messages': [
+                {'role': 'system', 'content': 'You are a professional CV analyzer.'},
+                {'role': 'user', 'content': prompt}
+            ]
+        }
+
+        response = requests.post(
+            'https://api.openai.com/v1/chat/completions',
+            headers=headers,
+            json=payload,
+            timeout=30
         )
 
-        return jsonify({"response": response.choices[0].text.strip()})
+        if response.status_code != 200:
+            return jsonify({"error": f"OpenAI API error: {response.text}"}), response.status_code
 
+        result = response.json()
+        return jsonify({"response": result['choices'][0]['message']['content']})
+
+    except requests.exceptions.RequestException as e:
+        return jsonify({"error": f"Request error: {str(e)}"}), 500
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
