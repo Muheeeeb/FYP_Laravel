@@ -38,7 +38,9 @@ if not API_KEY:
     )
 
 try:
-    client = OpenAI(api_key=API_KEY)
+    # Initialize OpenAI client with minimal configuration
+    client = OpenAI()  # It will automatically use OPENAI_API_KEY from environment
+    
     # Test the API key by making a small request
     response = client.chat.completions.create(
         model="gpt-4",
