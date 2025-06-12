@@ -10,7 +10,7 @@ use Illuminate\Http\Client\ConnectionException;
 
 class CvRankingService
 {
-    protected $apiUrl = 'http://127.0.0.1:5000/evaluate_resume';
+    protected $apiUrl = 'https://cv-ranking-dtvo.onrender.com/evaluate_resume';
     protected $timeout = 120; // 120 seconds timeout
 
     public function rankApplications(JobPosting $jobPosting, array $specificApplications = null)
